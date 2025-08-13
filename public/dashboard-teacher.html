@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Profesor - Spider Grades</title>
+    <link href="./css/style.css" rel="stylesheet">
+    <link rel="icon" type="image/svg+xml" href="./assets/spider-icon.svg">
+</head>
+<body class="bg-gray-50">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-sm border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center space-x-3">
+                    <div class="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center">
+                        <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                    </div>
+                    <h1 class="text-xl font-bold text-gray-900">Spider Grades</h1>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <span id="teacherName" class="text-gray-700 font-medium">Profesor</span>
+                    <button onclick="signOut()" class="btn-secondary text-sm">
+                        Cerrar Sesión
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Header -->
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-gray-900 mb-2">Dashboard del Profesor</h1>
+            <p class="text-gray-600">Gestiona las calificaciones de tus estudiantes</p>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="grid md:grid-cols-4 gap-6 mb-8">
+            <div class="card">
+                <div class="flex items-center">
+                    <div class="w-12 h-12 bg-primary-100 rounded-lg flex items-center justify-center">
+                        <svg class="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"/>
+                        </svg>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600">Total Estudiantes</p>
+                        <p id="totalStudents" class="text-2xl font-bold text-gray-900">0</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="flex items-center">
+                    <div class="w-12 h-12 bg-success-100 rounded-lg flex items-center justify-center">
+                        <svg class="w-6 h-6 text-success-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                        </svg>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600">Asignaturas</p>
+                        <p id="totalSubjects" class="text-2xl font-bold text-gray-900">0</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="flex items-center">
+                    <div class="w-12 h-12 bg-warning-100 rounded-lg flex items-center justify-center">
+                        <svg class="w-6 h-6 text-warning-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600">Pendientes</p>
+                        <p id="pendingGrades" class="text-2xl font-bold text-gray-900">0</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="flex items-center">
+                    <div class="w-12 h-12 bg-danger-100 rounded-lg flex items-center justify-center">
+                        <svg class="w-6 h-6 text-danger-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"/>
+                        </svg>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600">Bajas</p>
+                        <p id="lowGrades" class="text-2xl font-bold text-gray-900">0</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex flex-wrap gap-4 mb-8">
+            <button onclick="showAddGradeModal()" class="btn-primary">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                </svg>
+                Agregar Calificación
+            </button>
+            <button onclick="showAddStudentModal()" class="btn-secondary">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/>
+                </svg>
+                Agregar Estudiante
+            </button>
+            <button onclick="showBulkAddStudentModal()" class="btn-success">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                </svg>
+                Agregar por Masa
+            </button>
+            <button onclick="showAddSubjectModal()" class="btn-secondary">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                </svg>
+                Nueva Asignatura
+            </button>
+        </div>
+
+        <!-- Tabs -->
+        <div class="mb-6">
+            <div class="border-b border-gray-200">
+                <nav class="-mb-px flex space-x-8">
+                    <button onclick="showTab('grades')" id="tab-grades" class="tab-button active">
+                        Calificaciones
+                    </button>
+                    <button onclick="showTab('students')" id="tab-students" class="tab-button">
+                        Estudiantes
+                    </button>
+                    <button onclick="showTab('subjects')" id="tab-subjects" class="tab-button">
+                        Asignaturas
+                    </button>
+                    <button onclick="showTab('reports')" id="tab-reports" class="tab-button">
+                        Reportes
+                    </button>
+                </nav>
+            </div>
+        </div>
+
+        <!-- Tab Content -->
+        <div id="tab-content">
+            <!-- Grades Tab -->
+            <div id="grades-tab" class="tab-content active">
+                <div class="card">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-xl font-semibold text-gray-900">Calificaciones Recientes</h2>
+                        <div class="flex space-x-2">
+                            <select id="subjectFilter" class="input w-48">
+                                <option value="">Todas las asignaturas</option>
+                            </select>
+                            <select id="studentFilter" class="input w-48">
+                                <option value="">Todos los estudiantes</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="overflow-x-auto">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Estudiante</th>
+                                    <th>Asignatura</th>
+                                    <th>Calificación</th>
+                                    <th>Fecha</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="gradesTableBody">
+                                <!-- Grades will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Students Tab -->
+            <div id="students-tab" class="tab-content">
+                <div class="card">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-xl font-semibold text-gray-900">Lista de Estudiantes</h2>
+                        <div class="flex space-x-2">
+                            <select id="levelFilter" class="input w-32">
+                                <option value="">Todos los niveles</option>
+                                <option value="freshman">Freshman</option>
+                                <option value="junior">Junior</option>
+                                <option value="senior">Senior</option>
+                            </select>
+                            <select id="turnFilter" class="input w-32">
+                                <option value="">Todos los turnos</option>
+                                <option value="AM">AM</option>
+                                <option value="PM">PM</option>
+                            </select>
+                            <button onclick="showAddStudentModal()" class="btn-primary">
+                                Agregar Estudiante
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="overflow-x-auto">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Nombre</th>
+                                    <th>Email</th>
+                                    <th>Nivel</th>
+                                    <th>Turno</th>
+                                    <th>Passcode</th>
+                                    <th>Estado</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="studentsTableBody">
+                                <!-- Students will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Subjects Tab -->
+            <div id="subjects-tab" class="tab-content">
+                <div class="card">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-xl font-semibold text-gray-900">Asignaturas</h2>
+                        <button onclick="showAddSubjectModal()" class="btn-primary">
+                            Nueva Asignatura
+                        </button>
+                    </div>
+                    
+                    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6" id="subjectsGrid">
+                        <!-- Subjects will be loaded here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reports Tab -->
+            <div id="reports-tab" class="tab-content">
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div class="card">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Promedio por Asignatura</h3>
+                        <div id="subjectAverages" class="space-y-3">
+                            <!-- Subject averages will be loaded here -->
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Distribución de Calificaciones</h3>
+                        <div id="gradeDistribution" class="space-y-3">
+                            <!-- Grade distribution will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Grade Modal -->
+    <div id="addGradeModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="card w-full max-w-md animate-slide-up">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold text-gray-900">Agregar Calificación</h2>
+                    <button onclick="hideAddGradeModal()" class="text-gray-400 hover:text-gray-600">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+                
+                <form id="addGradeForm" class="space-y-4">
+                    <div>
+                        <label for="gradeStudent" class="block text-sm font-medium text-gray-700 mb-1">Estudiante</label>
+                        <select id="gradeStudent" name="student" required class="input">
+                            <option value="">Seleccionar estudiante</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label for="gradeSubject" class="block text-sm font-medium text-gray-700 mb-1">Asignatura</label>
+                        <select id="gradeSubject" name="subject" required class="input">
+                            <option value="">Seleccionar asignatura</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label for="gradeValue" class="block text-sm font-medium text-gray-700 mb-1">Calificación</label>
+                        <input type="number" id="gradeValue" name="grade" min="0" max="100" step="0.1" required class="input">
+                    </div>
+                    
+                    <div>
+                        <label for="gradeComment" class="block text-sm font-medium text-gray-700 mb-1">Comentario (opcional)</label>
+                        <textarea id="gradeComment" name="comment" rows="3" class="input"></textarea>
+                    </div>
+                    
+                    <div class="flex space-x-3">
+                        <button type="submit" class="btn-primary flex-1">
+                            Guardar
+                        </button>
+                        <button type="button" onclick="hideAddGradeModal()" class="btn-secondary flex-1">
+                            Cancelar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Student Modal -->
+    <div id="addStudentModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="card w-full max-w-lg animate-slide-up">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold text-gray-900">Agregar Estudiante</h2>
+                    <button onclick="hideAddStudentModal()" class="text-gray-400 hover:text-gray-600">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+                
+                <form id="addStudentForm" class="space-y-4">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label for="studentFirstName" class="block text-sm font-medium text-gray-700 mb-1">Nombre</label>
+                            <input type="text" id="studentFirstName" name="firstName" required class="input" placeholder="Nombre del estudiante">
+                        </div>
+                        <div>
+                            <label for="studentLastName" class="block text-sm font-medium text-gray-700 mb-1">Apellido</label>
+                            <input type="text" id="studentLastName" name="lastName" required class="input" placeholder="Apellido del estudiante">
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label for="studentEmail" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                        <input type="email" id="studentEmail" name="email" required class="input" placeholder="email@ejemplo.com">
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Nivel</label>
+                            <div class="grid grid-cols-3 gap-2">
+                                <label class="relative cursor-pointer">
+                                    <input type="radio" name="level" value="freshman" class="sr-only peer" required>
+                                    <div class="border-2 border-gray-200 rounded-lg p-2 text-center transition-all hover:border-primary-300 peer-checked:border-primary-500 peer-checked:bg-primary-50">
+                                        <span class="text-sm font-medium text-gray-700 peer-checked:text-primary-700">Freshman</span>
+                                    </div>
+                                </label>
+                                <label class="relative cursor-pointer">
+                                    <input type="radio" name="level" value="junior" class="sr-only peer">
+                                    <div class="border-2 border-gray-200 rounded-lg p-2 text-center transition-all hover:border-primary-300 peer-checked:border-primary-500 peer-checked:bg-primary-50">
+                                        <span class="text-sm font-medium text-gray-700 peer-checked:text-primary-700">Junior</span>
+                                    </div>
+                                </label>
+                                <label class="relative cursor-pointer">
+                                    <input type="radio" name="level" value="senior" class="sr-only peer">
+                                    <div class="border-2 border-gray-200 rounded-lg p-2 text-center transition-all hover:border-primary-300 peer-checked:border-primary-500 peer-checked:bg-primary-50">
+                                        <span class="text-sm font-medium text-gray-700 peer-checked:text-primary-700">Senior</span>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Turno</label>
+                            <div class="grid grid-cols-2 gap-2">
+                                <label class="relative cursor-pointer">
+                                    <input type="radio" name="turn" value="AM" class="sr-only peer" required>
+                                    <div class="border-2 border-gray-200 rounded-lg p-2 text-center transition-all hover:border-primary-300 peer-checked:border-primary-500 peer-checked:bg-primary-50">
+                                        <span class="text-sm font-medium text-gray-700 peer-checked:text-primary-700">AM</span>
+                                    </div>
+                                </label>
+                                <label class="relative cursor-pointer">
+                                    <input type="radio" name="turn" value="PM" class="sr-only peer">
+                                    <div class="border-2 border-gray-200 rounded-lg p-2 text-center transition-all hover:border-primary-300 peer-checked:border-primary-500 peer-checked:bg-primary-50">
+                                        <span class="text-sm font-medium text-gray-700 peer-checked:text-primary-700">PM</span>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex space-x-3">
+                        <button type="submit" class="btn-primary flex-1">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                            </svg>
+                            Crear Estudiante
+                        </button>
+                        <button type="button" onclick="hideAddStudentModal()" class="btn-secondary flex-1">
+                            Cancelar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bulk Add Students Modal -->
+    <div id="bulkAddStudentModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="card w-full max-w-4xl animate-slide-up">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold text-gray-900">Agregar Estudiantes por Masa</h2>
+                    <button onclick="hideBulkAddStudentModal()" class="text-gray-400 hover:text-gray-600">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+                
+                <div class="space-y-6">
+                    <!-- Configuration Section -->
+                    <div class="bg-gray-50 rounded-lg p-4">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Configuración General</h3>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Nivel</label>
+                                <div class="grid grid-cols-3 gap-2">
+                                    <label class="relative cursor-pointer">
+                                        <input type="radio" name="bulkLevel" value="freshman" class="sr-only peer" required>
+                                        <div class="border-2 border-gray-200 rounded-lg p-2 text-center transition-all hover:border-primary-300 peer-checked:border-primary-500 peer-checked:bg-primary-50">
+                                            <span class="text-sm font-medium text-gray-700 peer-checked:text-primary-700">Freshman</span>
+                                        </div>
+                                    </label>
+                                    <label class="relative cursor-pointer">
+                                        <input type="radio" name="bulkLevel" value="junior" class="sr-only peer">
+                                        <div class="border-2 border-gray-200 rounded-lg p-2 text-center transition-all hover:border-primary-300 peer-checked:border-primary-500 peer-checked:bg-primary-50">
+                                            <span class="text-sm font-medium text-gray-700 peer-checked:text-primary-700">Junior</span>
+                                        </div>
+                                    </label>
+                                    <label class="relative cursor-pointer">
+                                        <input type="radio" name="bulkLevel" value="senior" class="sr-only peer">
+                                        <div class="border-2 border-gray-200 rounded-lg p-2 text-center transition-all hover:border-primary-300 peer-checked:border-primary-500 peer-checked:bg-primary-50">
+                                            <span class="text-sm font-medium text-gray-700 peer-checked:text-primary-700">Senior</span>
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Turno</label>
+                                <div class="grid grid-cols-2 gap-2">
+                                    <label class="relative cursor-pointer">
+                                        <input type="radio" name="bulkTurn" value="AM" class="sr-only peer" required>
+                                        <div class="border-2 border-gray-200 rounded-lg p-2 text-center transition-all hover:border-primary-300 peer-checked:border-primary-500 peer-checked:bg-primary-50">
+                                            <span class="text-sm font-medium text-gray-700 peer-checked:text-primary-700">AM</span>
+                                        </div>
+                                    </label>
+                                    <label class="relative cursor-pointer">
+                                        <input type="radio" name="bulkTurn" value="PM" class="sr-only peer">
+                                        <div class="border-2 border-gray-200 rounded-lg p-2 text-center transition-all hover:border-primary-300 peer-checked:border-primary-500 peer-checked:bg-primary-50">
+                                            <span class="text-sm font-medium text-gray-700 peer-checked:text-primary-700">PM</span>
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Students List -->
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Lista de Estudiantes</h3>
+                        <div class="space-y-3" id="bulkStudentsList">
+                            <div class="flex space-x-3 items-center">
+                                <div class="flex-1">
+                                    <input type="text" name="bulkFirstName[]" placeholder="Nombre" class="input" required>
+                                </div>
+                                <div class="flex-1">
+                                    <input type="text" name="bulkLastName[]" placeholder="Apellido" class="input" required>
+                                </div>
+                                <div class="flex-1">
+                                    <input type="email" name="bulkEmail[]" placeholder="Email" class="input" required>
+                                </div>
+                                <button type="button" onclick="removeBulkStudent(this)" class="btn-danger p-2">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <button type="button" onclick="addBulkStudent()" class="btn-secondary mt-3">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                            </svg>
+                            Agregar Otro Estudiante
+                        </button>
+                    </div>
+                    
+                    <div class="flex space-x-3">
+                        <button type="button" onclick="createBulkStudents()" class="btn-success flex-1">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                            </svg>
+                            Crear Estudiantes
+                        </button>
+                        <button type="button" onclick="hideBulkAddStudentModal()" class="btn-secondary flex-1">
+                            Cancelar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Subject Modal -->
+    <div id="addSubjectModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="card w-full max-w-md animate-slide-up">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold text-gray-900">Nueva Asignatura</h2>
+                    <button onclick="hideAddSubjectModal()" class="text-gray-400 hover:text-gray-600">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+                
+                <form id="addSubjectForm" class="space-y-4">
+                    <div>
+                        <label for="subjectName" class="block text-sm font-medium text-gray-700 mb-1">Nombre de la Asignatura</label>
+                        <input type="text" id="subjectName" name="name" required class="input" placeholder="Ej: Matemáticas">
+                    </div>
+                    
+                    <div>
+                        <label for="subjectCode" class="block text-sm font-medium text-gray-700 mb-1">Código</label>
+                        <input type="text" id="subjectCode" name="code" required class="input" placeholder="Ej: MAT101">
+                    </div>
+                    
+                    <div>
+                        <label for="subjectDescription" class="block text-sm font-medium text-gray-700 mb-1">Descripción (opcional)</label>
+                        <textarea id="subjectDescription" name="description" rows="3" class="input" placeholder="Descripción de la asignatura"></textarea>
+                    </div>
+                    
+                    <div class="flex space-x-3">
+                        <button type="submit" class="btn-primary flex-1">
+                            Crear Asignatura
+                        </button>
+                        <button type="button" onclick="hideAddSubjectModal()" class="btn-secondary flex-1">
+                            Cancelar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Spinner -->
+    <div id="loadingSpinner" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+        <div class="flex items-center justify-center min-h-screen">
+            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script type="module" src="./js/firebase-config.js"></script>
+    <script type="module" src="./js/database.js"></script>
+    <script type="module" src="./js/teacher-dashboard.js"></script>
+</body>
+</html>
