@@ -265,9 +265,9 @@
     <!-- Add Grade Modal -->
     <div id="addGradeModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
         <div class="flex items-center justify-center min-h-screen p-4">
-            <div class="card w-full max-w-md animate-slide-up">
+            <div class="card w-full max-w-6xl animate-slide-up max-h-[90vh] overflow-y-auto">
                 <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-2xl font-bold text-gray-900">Agregar Calificación</h2>
+                    <h2 class="text-2xl font-bold text-gray-900">Sistema de Calificaciones Avanzado</h2>
                     <button onclick="hideAddGradeModal()" class="text-gray-400 hover:text-gray-600">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
@@ -275,40 +275,223 @@
                     </button>
                 </div>
                 
-                <form id="addGradeForm" class="space-y-4">
-                    <div>
-                        <label for="gradeStudent" class="block text-sm font-medium text-gray-700 mb-1">Estudiante</label>
-                        <select id="gradeStudent" name="student" required class="input">
-                            <option value="">Seleccionar estudiante</option>
-                        </select>
+                <!-- Step Navigation -->
+                <div class="mb-6">
+                    <div class="flex items-center space-x-4">
+                        <div class="flex items-center">
+                            <div id="step1-indicator" class="w-8 h-8 bg-primary-600 text-white rounded-full flex items-center justify-center text-sm font-medium">1</div>
+                            <span class="ml-2 text-sm font-medium text-gray-900">Configuración</span>
+                        </div>
+                        <div class="flex-1 h-0.5 bg-gray-200"></div>
+                        <div class="flex items-center">
+                            <div id="step2-indicator" class="w-8 h-8 bg-gray-200 text-gray-500 rounded-full flex items-center justify-center text-sm font-medium">2</div>
+                            <span class="ml-2 text-sm font-medium text-gray-500">Estudiantes</span>
+                        </div>
+                        <div class="flex-1 h-0.5 bg-gray-200"></div>
+                        <div class="flex items-center">
+                            <div id="step3-indicator" class="w-8 h-8 bg-gray-200 text-gray-500 rounded-full flex items-center justify-center text-sm font-medium">3</div>
+                            <span class="ml-2 text-sm font-medium text-gray-500">Calificaciones</span>
+                        </div>
                     </div>
-                    
-                    <div>
-                        <label for="gradeSubject" class="block text-sm font-medium text-gray-700 mb-1">Asignatura</label>
-                        <select id="gradeSubject" name="subject" required class="input">
-                            <option value="">Seleccionar asignatura</option>
-                        </select>
+                </div>
+
+                <!-- Step 1: Configuration -->
+                <div id="step1" class="step-content active">
+                    <div class="space-y-6">
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <!-- Subject Selection -->
+                            <div>
+                                <label for="gradeSubject" class="block text-sm font-medium text-gray-700 mb-2">Asignatura</label>
+                                <select id="gradeSubject" name="subject" required class="input">
+                                    <option value="">Seleccionar asignatura</option>
+                                </select>
+                            </div>
+                            
+                            <!-- Grade Type -->
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Tipo de Evaluación</label>
+                                <div class="grid grid-cols-2 gap-2">
+                                    <label class="relative cursor-pointer">
+                                        <input type="radio" name="gradeType" value="simple" class="sr-only peer" checked>
+                                        <div class="border-2 border-gray-200 rounded-lg p-3 text-center transition-all hover:border-primary-300 peer-checked:border-primary-500 peer-checked:bg-primary-50">
+                                            <span class="text-sm font-medium text-gray-700 peer-checked:text-primary-700">Calificación Simple</span>
+                                        </div>
+                                    </label>
+                                    <label class="relative cursor-pointer">
+                                        <input type="radio" name="gradeType" value="categorized" class="sr-only peer">
+                                        <div class="border-2 border-gray-200 rounded-lg p-3 text-center transition-all hover:border-primary-300 peer-checked:border-primary-500 peer-checked:bg-primary-50">
+                                            <span class="text-sm font-medium text-gray-700 peer-checked:text-primary-700">Por Categorías</span>
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Categorized Grades Configuration -->
+                        <div id="categorizedConfig" class="hidden">
+                            <div class="bg-gray-50 rounded-lg p-4">
+                                <h3 class="text-lg font-semibold text-gray-900 mb-4">Configuración de Categorías</h3>
+                                <div class="space-y-4">
+                                    <div id="categoriesList">
+                                        <div class="flex space-x-3 items-center">
+                                            <div class="flex-1">
+                                                <input type="text" name="categoryName[]" placeholder="Nombre de categoría" class="input" value="Exámenes">
+                                            </div>
+                                            <div class="w-24">
+                                                <input type="number" name="categoryPercentage[]" placeholder="%" class="input" min="0" max="100" value="40">
+                                            </div>
+                                            <button type="button" onclick="removeCategory(this)" class="btn-danger p-2">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                                </svg>
+                                            </button>
+                                        </div>
+                                        <div class="flex space-x-3 items-center">
+                                            <div class="flex-1">
+                                                <input type="text" name="categoryName[]" placeholder="Nombre de categoría" class="input" value="Tareas">
+                                            </div>
+                                            <div class="w-24">
+                                                <input type="number" name="categoryPercentage[]" placeholder="%" class="input" min="0" max="100" value="30">
+                                            </div>
+                                            <button type="button" onclick="removeCategory(this)" class="btn-danger p-2">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                                </svg>
+                                            </button>
+                                        </div>
+                                        <div class="flex space-x-3 items-center">
+                                            <div class="flex-1">
+                                                <input type="text" name="categoryName[]" placeholder="Nombre de categoría" class="input" value="Participación">
+                                            </div>
+                                            <div class="w-24">
+                                                <input type="number" name="categoryPercentage[]" placeholder="%" class="input" min="0" max="100" value="30">
+                                            </div>
+                                            <button type="button" onclick="removeCategory(this)" class="btn-danger p-2">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                                </svg>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    
+                                    <button type="button" onclick="addCategory()" class="btn-secondary">
+                                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                                        </svg>
+                                        Agregar Categoría
+                                    </button>
+                                    
+                                    <div class="flex items-center justify-between p-3 bg-white rounded-lg border">
+                                        <span class="text-sm font-medium text-gray-700">Total de Porcentajes:</span>
+                                        <span id="totalPercentage" class="text-lg font-bold text-primary-600">100%</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex justify-end">
+                            <button type="button" onclick="nextStep()" class="btn-primary">
+                                Siguiente
+                                <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                </svg>
+                            </button>
+                        </div>
                     </div>
-                    
-                    <div>
-                        <label for="gradeValue" class="block text-sm font-medium text-gray-700 mb-1">Calificación</label>
-                        <input type="number" id="gradeValue" name="grade" min="0" max="100" step="0.1" required class="input">
+                </div>
+
+                <!-- Step 2: Student Selection -->
+                <div id="step2" class="step-content hidden">
+                    <div class="space-y-6">
+                        <!-- Filters -->
+                        <div class="bg-gray-50 rounded-lg p-4">
+                            <h3 class="text-lg font-semibold text-gray-900 mb-4">Filtros de Estudiantes</h3>
+                            <div class="grid md:grid-cols-3 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Nivel</label>
+                                    <select id="studentLevelFilter" class="input">
+                                        <option value="">Todos los niveles</option>
+                                        <option value="freshman">Freshman</option>
+                                        <option value="junior">Junior</option>
+                                        <option value="senior">Senior</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Turno</label>
+                                    <select id="studentTurnFilter" class="input">
+                                        <option value="">Todos los turnos</option>
+                                        <option value="AM">AM</option>
+                                        <option value="PM">PM</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Buscar</label>
+                                    <input type="text" id="studentSearch" placeholder="Buscar por nombre..." class="input">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Student List -->
+                        <div>
+                            <div class="flex justify-between items-center mb-4">
+                                <h3 class="text-lg font-semibold text-gray-900">Seleccionar Estudiantes</h3>
+                                <div class="flex space-x-2">
+                                    <button type="button" onclick="selectAllStudents()" class="btn-outline text-sm">
+                                        Seleccionar Todos
+                                    </button>
+                                    <button type="button" onclick="deselectAllStudents()" class="btn-outline text-sm">
+                                        Deseleccionar Todos
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="max-h-64 overflow-y-auto border rounded-lg">
+                                <div id="studentsCheckboxList" class="p-4 space-y-2">
+                                    <!-- Students will be loaded here -->
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex justify-between">
+                            <button type="button" onclick="previousStep()" class="btn-secondary">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                                </svg>
+                                Anterior
+                            </button>
+                            <button type="button" onclick="nextStep()" class="btn-primary">
+                                Siguiente
+                                <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                </svg>
+                            </button>
+                        </div>
                     </div>
-                    
-                    <div>
-                        <label for="gradeComment" class="block text-sm font-medium text-gray-700 mb-1">Comentario (opcional)</label>
-                        <textarea id="gradeComment" name="comment" rows="3" class="input"></textarea>
+                </div>
+
+                <!-- Step 3: Grades Entry -->
+                <div id="step3" class="step-content hidden">
+                    <div class="space-y-6">
+                        <div id="gradesEntryContainer">
+                            <!-- Grades will be dynamically generated here -->
+                        </div>
+
+                        <div class="flex justify-between">
+                            <button type="button" onclick="previousStep()" class="btn-secondary">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                                </svg>
+                                Anterior
+                            </button>
+                            <button type="button" onclick="saveGrades()" class="btn-success">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                </svg>
+                                Guardar Calificaciones
+                            </button>
+                        </div>
                     </div>
-                    
-                    <div class="flex space-x-3">
-                        <button type="submit" class="btn-primary flex-1">
-                            Guardar
-                        </button>
-                        <button type="button" onclick="hideAddGradeModal()" class="btn-secondary flex-1">
-                            Cancelar
-                        </button>
-                    </div>
-                </form>
+                </div>
             </div>
         </div>
     </div>
