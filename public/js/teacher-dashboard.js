@@ -443,24 +443,54 @@ function updateGradesTable() {
         const student = students.find(s => s.id === grade.studentId);
         const subject = subjects.find(s => s.id === grade.subjectId);
         
+        // Format grade display
+        let gradeDisplay = grade.value;
+        let gradeType = '';
+        
+        if (grade.type === 'categorized' && grade.categories) {
+            gradeType = 'Categorizada';
+            // Show breakdown on hover
+            const categoryBreakdown = Object.entries(grade.categories)
+                .map(([name, data]) => `${name}: ${data.grade}%`)
+                .join(', ');
+            gradeDisplay = `
+                <span class="relative group">
+                    ${grade.value.toFixed(1)}
+                    <div class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
+                        ${categoryBreakdown}
+                        <div class="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
+                    </div>
+                </span>
+            `;
+        } else {
+            gradeType = 'Simple';
+        }
+        
         return `
             <tr class="hover:bg-gray-50">
                 <td class="font-medium">${student ? `${student.firstName} ${student.lastName}` : 'N/A'}</td>
                 <td>${subject ? subject.name : 'N/A'}</td>
                 <td>
-                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getGradeColor(grade.value)}">
-                        ${grade.value}
-                    </span>
+                    <div class="flex items-center space-x-2">
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getGradeColor(grade.value)}">
+                            ${gradeDisplay}
+                        </span>
+                        ${grade.type === 'categorized' ? `
+                            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-primary-100 text-primary-800">
+                                ${gradeType}
+                            </span>
+                        ` : ''}
+                    </div>
                 </td>
                 <td>${grade.createdAt ? new Date(grade.createdAt.toDate()).toLocaleDateString() : 'N/A'}</td>
                 <td>
                     <div class="flex space-x-2">
-                        <button onclick="editGrade('${grade.id}')" class="text-primary-600 hover:text-primary-900">
+                        <button onclick="editGrade('${grade.id}')" class="text-primary-600 hover:text-primary-900" title="Editar">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                             </svg>
                         </button>
-                        <button onclick="deleteGrade('${grade.id}')" class="text-danger-600 hover:text-danger-900">
+                        <button onclick="deleteGrade('${grade.id}')" class="text-danger-600 hover:text-danger-900" title="Eliminar">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
                             </svg>
