@@ -1,0 +1,209 @@
+/* Footer Component Styles */
+
+.footer-component {
+    background-color: #f9fafb;
+    border-top: 1px solid #e5e7eb;
+    padding: 1rem 0;
+    margin-top: auto;
+}
+
+.footer-content {
+    max-width: 80rem;
+    margin: 0 auto;
+    padding: 0 1rem;
+}
+
+.footer-main {
+    text-align: center;
+    margin-bottom: 1rem;
+}
+
+.footer-copyright {
+    font-size: 0.875rem;
+    color: #4b5563;
+    margin-bottom: 0.25rem;
+}
+
+.footer-subtitle {
+    font-size: 0.75rem;
+    color: #6b7280;
+    margin-bottom: 0.5rem;
+}
+
+.footer-links {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+    margin-top: 0.75rem;
+}
+
+.footer-link {
+    font-size: 0.75rem;
+    color: #6b7280;
+    text-decoration: none;
+    transition: color 0.2s ease-in-out;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+}
+
+.footer-link:hover {
+    color: #3b82f6;
+    background-color: #f3f4f6;
+}
+
+.footer-link:focus {
+    outline: 2px solid #3b82f6;
+    outline-offset: 2px;
+}
+
+.footer-divider {
+    width: 1px;
+    height: 1rem;
+    background-color: #d1d5db;
+}
+
+/* Modal styles for policies */
+.policy-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+}
+
+.policy-modal.show {
+    opacity: 1;
+    visibility: visible;
+}
+
+.policy-modal-content {
+    background-color: white;
+    border-radius: 0.5rem;
+    padding: 2rem;
+    max-width: 90%;
+    max-height: 90%;
+    overflow-y: auto;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    transform: scale(0.9);
+    transition: transform 0.3s ease;
+}
+
+.policy-modal.show .policy-modal-content {
+    transform: scale(1);
+}
+
+.policy-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.policy-modal-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #111827;
+    margin: 0;
+}
+
+.policy-modal-close {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: #6b7280;
+    cursor: pointer;
+    padding: 0.25rem;
+    border-radius: 0.25rem;
+    transition: all 0.2s ease;
+}
+
+.policy-modal-close:hover {
+    color: #374151;
+    background-color: #f3f4f6;
+}
+
+.policy-modal-body {
+    color: #374151;
+    line-height: 1.6;
+}
+
+.policy-modal-body h3 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #111827;
+    margin: 1.5rem 0 0.75rem 0;
+}
+
+.policy-modal-body h4 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #111827;
+    margin: 1rem 0 0.5rem 0;
+}
+
+.policy-modal-body p {
+    margin-bottom: 1rem;
+}
+
+.policy-modal-body ul {
+    margin: 1rem 0;
+    padding-left: 1.5rem;
+}
+
+.policy-modal-body li {
+    margin-bottom: 0.5rem;
+}
+
+.policy-modal-body strong {
+    font-weight: 600;
+    color: #111827;
+}
+
+/* Responsive design */
+@media (max-width: 640px) {
+    .footer-links {
+        gap: 1rem;
+        flex-direction: column;
+    }
+    
+    .footer-divider {
+        display: none;
+    }
+    
+    .policy-modal-content {
+        margin: 1rem;
+        padding: 1.5rem;
+    }
+    
+    .policy-modal-title {
+        font-size: 1.25rem;
+    }
+}
+
+/* Animation for modal */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.policy-modal.show .policy-modal-content {
+    animation: fadeIn 0.3s ease-out;
+}

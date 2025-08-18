@@ -106,6 +106,11 @@ adminLoginForm.addEventListener('submit', async (e) => {
         if (userDoc.exists()) {
             const userData = userDoc.data();
             if (userData.role === 'admin') {
+                // Store credentials for re-authentication
+                localStorage.setItem('adminEmail', email);
+                localStorage.setItem('adminPassword', password);
+                console.log('✅ Admin credentials stored for re-authentication');
+                
                 showNotification('¡Bienvenido, Administrador!', 'success');
                 setTimeout(() => {
                     window.location.href = './dashboard-admin.html';
@@ -158,6 +163,11 @@ async function createNewAdminUser(email, password, passcode) {
             adminLevel: 'full'
         });
         
+        // Store credentials for re-authentication
+        localStorage.setItem('adminEmail', email);
+        localStorage.setItem('adminPassword', password);
+        console.log('✅ Admin credentials stored for re-authentication');
+        
         showNotification('¡Administrador creado exitosamente!', 'success');
         setTimeout(() => {
             window.location.href = './dashboard-admin.html';
@@ -182,6 +192,11 @@ async function createAdminUser(user, email, passcode) {
             passcodeUsed: passcode.toUpperCase(),
             adminLevel: 'full'
         }, { merge: true });
+        
+        // Store credentials for re-authentication
+        localStorage.setItem('adminEmail', email);
+        localStorage.setItem('adminPassword', password);
+        console.log('✅ Admin credentials stored for re-authentication');
         
         showNotification('¡Usuario actualizado a administrador!', 'success');
         setTimeout(() => {

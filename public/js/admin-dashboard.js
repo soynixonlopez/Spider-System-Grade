@@ -45,6 +45,11 @@ let isCreatingBulkStudents = false;
 let isRedirecting = false;
 
 // Utility functions
+function resetPermissionsRetryCount() {
+    window.permissionsRetryCount = 0;
+    console.log('🔄 Permissions retry count reset');
+}
+
 function showLoading(message = 'Procesando...') {
     const loadingDiv = document.createElement('div');
     loadingDiv.id = 'loadingOverlay';
@@ -215,6 +220,20 @@ function hideAddStudentsModal() {
     if (previewDiv) {
         previewDiv.classList.add('hidden');
     }
+    
+    // Reset method selector to individual
+    const addMethod = document.getElementById('addMethod');
+    if (addMethod) {
+        addMethod.value = 'individual';
+        const individualForm = document.getElementById('individualStudentForm');
+        const bulkForm = document.getElementById('bulkStudentsForm');
+        if (individualForm && bulkForm) {
+            individualForm.classList.remove('hidden');
+            bulkForm.classList.add('hidden');
+        }
+    }
+    
+    console.log('✅ Add students modal hidden and form reset');
 }
 
 // Edit modal functions
@@ -306,28 +325,153 @@ async function loadTeachers() {
 
 async function loadStudents() {
     try {
-        console.log('Loading students...');
+        console.log('🔄 Loading students from Firestore...');
         showLoading('Cargando estudiantes...');
+        
+        // Check authentication first
+        const currentUser = auth.currentUser;
+        if (!currentUser) {
+            console.log('⚠️ No authenticated user, attempting to re-authenticate...');
+            
+            // Try to re-authenticate with stored credentials
+            try {
+                const storedEmail = localStorage.getItem('adminEmail');
+                const storedPassword = localStorage.getItem('adminPassword');
+                
+                if (storedEmail && storedPassword) {
+                    await signInWithEmailAndPassword(auth, storedEmail, storedPassword);
+                    console.log('✅ Re-authenticated successfully');
+                    // Reset retry count on successful re-authentication
+                    resetPermissionsRetryCount();
+                } else {
+                    console.log('❌ No stored credentials found');
+                    hideLoading();
+                    showNotification('Sesión expirada. Por favor, inicia sesión nuevamente.', 'error');
+                    return;
+                }
+            } catch (reauthError) {
+                console.error('❌ Re-authentication failed:', reauthError);
+                hideLoading();
+                showNotification('Sesión expirada. Por favor, inicia sesión nuevamente.', 'error');
+                return;
+            }
+        }
+        
         const studentsQuery = query(
             collection(db, 'users'),
             where('role', '==', 'student')
         );
         const snapshot = await getDocs(studentsQuery);
+        
         students = snapshot.docs.map(doc => ({ 
             id: doc.id, 
             ...doc.data() 
         }));
         
-        console.log('Students loaded:', students.length);
+        console.log('✅ Students loaded:', students.length);
+        console.log('📋 Students data:', students.map(s => ({
+            name: `${s.firstName} ${s.lastName}`,
+            level: s.level,
+            promotionId: s.promotionId
+        })));
+        
         students.sort((a, b) => (a.firstName || '').localeCompare(b.firstName || ''));
+        
+        // Update UI
         updateStudentsByPromotion();
+        console.log('✅ Students UI updated');
+        
         // Update promotions list to show current student counts
         updatePromotionsList();
+        console.log('✅ Promotions list updated with new student counts');
+        
     } catch (error) {
-        console.error('Error loading students:', error);
+        console.error('❌ Error loading students:', error);
+        
+        // If it's a permissions error, try to handle it gracefully
+        if (error.code === 'permission-denied' || error.message.includes('permissions')) {
+            console.log('⚠️ Permissions error detected');
+            
+            // Check if we've already tried to refresh
+            if (window.permissionsRetryCount === undefined) {
+                window.permissionsRetryCount = 0;
+            }
+            
+            if (window.permissionsRetryCount < 2) {
+                window.permissionsRetryCount++;
+                console.log(`🔄 Attempting to refresh authentication (attempt ${window.permissionsRetryCount}/2)...`);
+                showNotification('Refrescando sesión...', 'warning');
+                
+                // Try to refresh the token
+                try {
+                    const currentUser = auth.currentUser;
+                    if (currentUser) {
+                        await currentUser.getIdToken(true);
+                        console.log('✅ Token refreshed, retrying...');
+                        // Retry once
+                        setTimeout(() => loadStudents(), 2000);
+                        return;
+                    }
+                } catch (refreshError) {
+                    console.error('❌ Token refresh failed:', refreshError);
+                }
+            } else {
+                console.log('❌ Max retry attempts reached, stopping retry loop');
+                window.permissionsRetryCount = 0; // Reset for next time
+                showNotification('Error de permisos persistente. Los estudiantes fueron creados pero la lista no se pudo actualizar. Recarga la página para ver los cambios.', 'warning');
+                return;
+            }
+        }
+        
         showNotification('Error al cargar los estudiantes', 'error');
+        throw error; // Re-throw to handle in calling function
     } finally {
         hideLoading();
+    }
+}
+
+// Alternative function to load students with better error handling
+async function loadStudentsWithRetry(maxRetries = 1) {
+    let retryCount = 0;
+    
+    while (retryCount <= maxRetries) {
+        try {
+            console.log(`🔄 Loading students (attempt ${retryCount + 1}/${maxRetries + 1})...`);
+            
+            const studentsQuery = query(
+                collection(db, 'users'),
+                where('role', '==', 'student')
+            );
+            const snapshot = await getDocs(studentsQuery);
+            
+            students = snapshot.docs.map(doc => ({ 
+                id: doc.id, 
+                ...doc.data() 
+            }));
+            
+            console.log('✅ Students loaded successfully:', students.length);
+            students.sort((a, b) => (a.firstName || '').localeCompare(b.firstName || ''));
+            
+            // Update UI
+            updateStudentsByPromotion();
+            updatePromotionsList();
+            
+            // Reset permissions retry count on success
+            resetPermissionsRetryCount();
+            return;
+            
+        } catch (error) {
+            retryCount++;
+            console.error(`❌ Error loading students (attempt ${retryCount}):`, error);
+            
+            if (retryCount > maxRetries) {
+                console.log('❌ Max retries reached, giving up');
+                throw error;
+            }
+            
+            // Wait before retrying
+            await new Promise(resolve => setTimeout(resolve, 2000));
+        }
     }
 }
 
@@ -725,6 +869,17 @@ function updateStudentsByPromotion() {
                             const promotionName = promotion ? `${promotion.name} - ${promotion.turn}` : 'Sin promoción';
                             const turn = promotion ? promotion.turn : 'N/A';
                             const level = student.level || 'Freshman';
+                            
+                            // Add color coding for levels
+                            let levelClass = 'text-gray-900';
+                            if (level === 'Senior') {
+                                levelClass = 'text-red-600 font-semibold';
+                            } else if (level === 'Junior') {
+                                levelClass = 'text-orange-600 font-semibold';
+                            } else if (level === 'Freshman') {
+                                levelClass = 'text-green-600 font-semibold';
+                            }
+                            
                             return `
                                 <tr class="hover:bg-gray-50" data-promotion-id="${student.promotionId || ''}" data-turn="${turn}" data-level="${level}" data-name="${student.firstName} ${student.lastName}">
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${index + 1}</td>
@@ -735,7 +890,7 @@ function updateStudentsByPromotion() {
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${student.email}</td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm font-mono text-blue-600 font-bold">${student.passcode || 'N/A'}</td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${turn}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${level}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm ${levelClass}">${level}</td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                         <div class="flex space-x-2">
                                             <button onclick="editStudent('${student.uid}')" class="btn-secondary text-xs" title="Editar estudiante">
@@ -912,6 +1067,9 @@ async function addStudents(formData) {
         const promotionId = formData.get('promotionId');
         const method = formData.get('method');
         
+        console.log('🔄 Adding students with method:', method);
+        console.log('📊 Promotion ID:', promotionId);
+        
         // Show loading based on method
         if (method === 'individual') {
             showLoading('Agregando estudiante...');
@@ -921,21 +1079,44 @@ async function addStudents(formData) {
             await addBulkStudents(formData, promotionId);
         }
         
-        // Reset form and close modal regardless of authentication state
+        // Reset form and close modal
         const form = document.getElementById('addStudentsForm');
         if (form) form.reset();
         hideAddStudentsModal();
         
-        // Try to reload students, but don't fail if authentication changed
+        // Always try to reload students and update UI
+        console.log('🔄 Reloading students list...');
         try {
-            await loadStudents();
+            // Use the new function with better error handling
+            await loadStudentsWithRetry(1);
+            console.log('✅ Students list reloaded successfully');
+            
             // Update statistics after successful student addition
             updateStats();
-            // Update promotions list to show new student counts
-            updatePromotionsList();
+            console.log('✅ Stats updated');
+            
+            showNotification('Estudiantes agregados exitosamente. Lista actualizada.', 'success');
         } catch (error) {
-            console.log('⚠️ Could not reload students list (auth may have changed):', error);
-            showNotification('Estudiantes agregados. La lista se actualizará al refrescar la página.', 'success');
+            console.error('❌ Error reloading students list:', error);
+            
+            // If it's a permissions error, show a more specific message
+            if (error.code === 'permission-denied' || error.message.includes('permissions')) {
+                showNotification('Estudiantes agregados exitosamente. La lista se actualizará automáticamente en unos momentos.', 'success');
+                
+                // Try to reload after a delay, but only once
+                setTimeout(async () => {
+                    try {
+                        console.log('🔄 Attempting delayed reload...');
+                        await loadStudentsWithRetry(0); // No additional retries
+                        console.log('✅ Students list reloaded after delay');
+                    } catch (retryError) {
+                        console.error('❌ Delayed retry failed:', retryError);
+                        showNotification('Los estudiantes fueron creados exitosamente. Recarga la página para ver la lista actualizada.', 'info');
+                    }
+                }, 5000); // Increased delay to 5 seconds
+            } else {
+                showNotification('Estudiantes agregados. La lista se actualizará al refrescar la página.', 'success');
+            }
         }
     } catch (error) {
         console.error('Error adding students:', error);
@@ -959,6 +1140,8 @@ async function addIndividualStudent(formData, promotionId) {
             let email = formData.get('email').trim();
             const level = formData.get('level') || 'Freshman';
             
+            console.log('🔄 Creating individual student with level:', level);
+            
             if (!email) {
                 // Get the graduation year from the selected promotion
                 const selectedPromotion = promotions.find(p => p.id === promotionId);
@@ -968,7 +1151,7 @@ async function addIndividualStudent(formData, promotionId) {
             
             const password = generatePasscode();
             
-            console.log('🔄 Creating individual student:', { firstName, lastName, email, promotionId });
+            console.log('🔄 Creating individual student:', { firstName, lastName, email, promotionId, level });
             
             // Validate required fields
             if (!firstName || !lastName) {
@@ -1003,7 +1186,7 @@ async function addIndividualStudent(formData, promotionId) {
             };
         
             await setDoc(doc(db, 'users', user.uid), userDoc);
-            console.log('✅ Student document created in Firestore');
+            console.log('✅ Student document created in Firestore with level:', level);
             
             // Assign all subjects for this promotion to the student
             await assignPromotionSubjectsToStudent(user.uid, promotionId);
@@ -1015,19 +1198,6 @@ async function addIndividualStudent(formData, promotionId) {
             
             console.log('✅ Student created successfully');
             showNotification('Estudiante creado exitosamente', 'success');
-            
-            // Reset form and close modal
-            const form = document.getElementById('addStudentsForm');
-            if (form) form.reset();
-            hideAddStudentsModal();
-            
-            // Try to reload students, but don't fail if authentication changed
-            try {
-                await loadStudents();
-            } catch (error) {
-                console.log('⚠️ Could not reload students list (auth may have changed):', error);
-                console.log('💡 Students list will be updated when admin re-authenticates');
-            }
             
         } catch (error) {
             console.error('❌ Error creating student:', error);
@@ -1067,6 +1237,8 @@ async function addBulkStudents(formData, promotionId) {
         const level = formData.get('level') || 'Freshman';
         const lines = bulkData.split('\n').filter(line => line.trim());
         
+        console.log(`🔄 Procesando ${lines.length} estudiantes con nivel: ${level}`);
+        
         const createdStudents = [];
         let successCount = 0;
         let errorCount = 0;
@@ -1097,6 +1269,7 @@ async function addBulkStudents(formData, promotionId) {
         
         console.log(`📧 Generando email para ${firstName} ${lastName}: ${finalEmail}`);
         console.log(`🔑 Passcode generado: ${password}`);
+        console.log(`📊 Nivel asignado: ${level}`);
         
         usersToCreate.push({
             firstName,
@@ -1136,7 +1309,7 @@ async function addBulkStudents(formData, promotionId) {
 
             // Add to Firestore directly
             await setDoc(doc(db, 'users', user.uid), userDoc);
-            console.log(`✅ Firestore document created for: ${user.uid}`);
+            console.log(`✅ Firestore document created for: ${user.uid} with level: ${userData.level}`);
             
             createdStudents.push(user.uid);
             successCount++;
@@ -1160,11 +1333,18 @@ async function addBulkStudents(formData, promotionId) {
     
     console.log(`📦 Firestore documents created for ${createdStudents.length} estudiantes`);
     
-    // Note: Subject assignments will be handled separately due to authentication context changes
+    // Assign subjects to newly created students
     if (createdStudents.length > 0) {
         console.log(`📋 ${createdStudents.length} students created successfully`);
-        console.log('💡 Subject assignments will be processed when admin re-authenticates');
-        console.log('💡 You can manually assign subjects later if needed');
+        console.log('🔄 Assigning subjects to newly created students...');
+        
+        try {
+            await assignSubjectsToNewStudents(createdStudents, promotionId);
+            console.log('✅ Subject assignments completed for bulk students');
+        } catch (error) {
+            console.error('❌ Error assigning subjects to bulk students:', error);
+            console.log('💡 You can manually assign subjects later if needed');
+        }
     }
     
     // Note: Admin authentication may have changed, but we'll continue
@@ -1204,6 +1384,8 @@ async function addBulkStudents(formData, promotionId) {
 
 async function assignPromotionSubjectsToStudent(studentId, promotionId) {
     try {
+        console.log(`🔄 Assigning subjects to student ${studentId} for promotion ${promotionId}`);
+        
         // Get all subjects for this promotion
         const subjectsQuery = query(
             collection(db, 'subjects'),
@@ -1211,6 +1393,12 @@ async function assignPromotionSubjectsToStudent(studentId, promotionId) {
         );
         
         const subjectsSnapshot = await getDocs(subjectsQuery);
+        console.log(`📚 Found ${subjectsSnapshot.docs.length} subjects for promotion ${promotionId}`);
+        
+        if (subjectsSnapshot.docs.length === 0) {
+            console.log('⚠️ No subjects found for this promotion');
+            return;
+        }
         
         // Create assignments one by one to avoid batch permission issues
         for (const subjectDoc of subjectsSnapshot.docs) {
@@ -1221,18 +1409,28 @@ async function assignPromotionSubjectsToStudent(studentId, promotionId) {
                 promotionId: promotionId,
                 createdAt: new Date()
             });
+            console.log(`✅ Assigned subject ${subjectDoc.data().name} to student ${studentId}`);
         }
         
-        console.log(`✅ Assigned ${subjectsSnapshot.docs.length} subjects to student ${studentId}`);
+        console.log(`✅ Successfully assigned ${subjectsSnapshot.docs.length} subjects to student ${studentId}`);
     } catch (error) {
-        console.error('Error assigning promotion subjects to student:', error);
+        console.error('❌ Error assigning promotion subjects to student:', error);
+        throw error; // Re-throw to handle in calling function
     }
 }
 
 async function assignSubjectsToNewStudents(studentIds, promotionId) {
-    console.log(`🔄 Assigning subjects to ${studentIds.length} new students...`);
+    console.log(`🔄 Assigning subjects to ${studentIds.length} new students for promotion ${promotionId}...`);
     
     try {
+        // Check authentication first
+        const currentUser = auth.currentUser;
+        if (!currentUser) {
+            console.log('⚠️ No authenticated user for subject assignment, skipping...');
+            showNotification('No se pudieron asignar materias automáticamente. Puedes asignarlas manualmente más tarde.', 'warning');
+            return;
+        }
+        
         // Get all subjects for this promotion
         const subjectsQuery = query(
             collection(db, 'subjects'),
@@ -1242,9 +1440,11 @@ async function assignSubjectsToNewStudents(studentIds, promotionId) {
         const subjectsSnapshot = await getDocs(subjectsQuery);
         const subjects = subjectsSnapshot.docs;
         
+        console.log(`📚 Found ${subjects.length} subjects for promotion ${promotionId}`);
+        
         if (subjects.length === 0) {
             console.log('⚠️ No subjects found for this promotion');
-            showNotification('No se encontraron materias para esta promoción', 'warning');
+            showNotification('No se encontraron materias para esta promoción. Los estudiantes fueron creados pero no tienen materias asignadas.', 'warning');
             return;
         }
         
@@ -1253,6 +1453,8 @@ async function assignSubjectsToNewStudents(studentIds, promotionId) {
         
         for (const studentId of studentIds) {
             try {
+                console.log(`🔄 Assigning subjects to student ${studentId}...`);
+                
                 // Create assignments for each subject
                 for (const subjectDoc of subjects) {
                     const studentSubjectRef = doc(collection(db, 'studentSubjects'));
@@ -1262,21 +1464,35 @@ async function assignSubjectsToNewStudents(studentIds, promotionId) {
                         promotionId: promotionId,
                         createdAt: new Date()
                     });
+                    console.log(`✅ Assigned subject ${subjectDoc.data().name} to student ${studentId}`);
                 }
                 successCount++;
-                console.log(`✅ Assigned ${subjects.length} subjects to student ${studentId}`);
+                console.log(`✅ Successfully assigned ${subjects.length} subjects to student ${studentId}`);
             } catch (error) {
                 errorCount++;
                 console.error(`❌ Error assigning subjects to student ${studentId}:`, error);
+                
+                // If it's a permissions error, stop trying
+                if (error.code === 'permission-denied' || error.message.includes('permissions')) {
+                    console.log('⚠️ Permissions error detected, stopping subject assignments');
+                    showNotification('Error de permisos al asignar materias. Los estudiantes fueron creados pero las materias se asignarán más tarde.', 'warning');
+                    break;
+                }
             }
         }
         
         console.log(`🎉 Subject assignment completed: ${successCount} successful, ${errorCount} errors`);
-        showNotification(`${successCount} estudiantes recibieron materias exitosamente${errorCount > 0 ? ` (${errorCount} errores)` : ''}`, 'success');
+        
+        if (successCount > 0) {
+            showNotification(`${successCount} estudiantes recibieron materias exitosamente${errorCount > 0 ? ` (${errorCount} errores)` : ''}`, 'success');
+        } else {
+            showNotification('Error asignando materias a los estudiantes', 'error');
+        }
         
     } catch (error) {
-        console.error('Error in bulk subject assignment:', error);
+        console.error('❌ Error in bulk subject assignment:', error);
         showNotification('Error asignando materias a los estudiantes', 'error');
+        throw error;
     }
 }
 
@@ -1696,6 +1912,24 @@ function setupEventListeners() {
                 individualForm.classList.add('hidden');
                 bulkForm.classList.remove('hidden');
             }
+        });
+    }
+    
+    // Sync level fields between individual and bulk forms
+    const individualLevel = document.getElementById('studentLevel');
+    const bulkLevel = document.getElementById('bulkStudentLevel');
+    
+    if (individualLevel && bulkLevel) {
+        // Sync from individual to bulk
+        individualLevel.addEventListener('change', (e) => {
+            bulkLevel.value = e.target.value;
+            console.log('🔄 Synced level from individual to bulk:', e.target.value);
+        });
+        
+        // Sync from bulk to individual
+        bulkLevel.addEventListener('change', (e) => {
+            individualLevel.value = e.target.value;
+            console.log('🔄 Synced level from bulk to individual:', e.target.value);
         });
     }
 }
