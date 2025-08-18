@@ -8,12 +8,20 @@ service cloud.firestore {
       // Teachers can read, write, and delete all users (to manage students)
       allow read, write, delete: if request.auth != null && 
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'teacher';
+      
+      // Admins can read, write, and delete all users
+      allow read, write, delete: if request.auth != null && 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
     
     // Teachers can manage subjects
     match /subjects/{subjectId} {
       allow read, write, delete: if request.auth != null && 
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'teacher';
+      
+      // Admins can manage subjects
+      allow read, write, delete: if request.auth != null && 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
     
     // Teachers can manage grades, students can read their own grades
@@ -23,6 +31,24 @@ service cloud.firestore {
       allow read: if request.auth != null && 
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'student' &&
         resource.data.studentId == request.auth.uid;
+    }
+    
+    // Teachers can manage academic periods
+    match /academicPeriods/{periodId} {
+      allow read, write, delete: if request.auth != null && 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'teacher';
+    }
+    
+    // Admins can manage promotions
+    match /promotions/{promotionId} {
+      allow read, write, delete: if request.auth != null && 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+    
+    // Admins can manage student-subject assignments
+    match /studentSubjects/{assignmentId} {
+      allow read, write, delete: if request.auth != null && 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
   }
 }

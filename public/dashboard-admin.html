@@ -1,0 +1,853 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Administrador - Spider System</title>
+    <link href="./css/style.css" rel="stylesheet">
+    <link href="./css/admin-dashboard.css" rel="stylesheet">
+    <link rel="icon" type="image/svg+xml" href="./assets/spider-icon.svg">
+
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-sm border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center space-x-3">
+                    <div class="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center">
+                        <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                    </div>
+                    <h1 class="text-xl font-bold text-gray-900">Spider System</h1>
+                    <span class="px-2 py-1 bg-primary-100 text-primary-800 text-xs font-medium rounded-full">Admin</span>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div class="flex items-center space-x-2">
+                        <div class="w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center">
+                            <svg class="w-4 h-4 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                            </svg>
+                        </div>
+                        <span id="adminName" class="text-gray-700 font-medium">Administrador</span>
+                    </div>
+                    <button id="logoutBtn" class="btn-secondary text-sm">
+                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                        </svg>
+                        Cerrar Sesión
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Header -->
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-gray-900 mb-2">Panel de Administración</h1>
+            <p class="text-gray-600">Gestiona el sistema educativo de manera eficiente</p>
+        </div>
+
+        <!-- Stats Overview -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div class="stats-card primary">
+                <div class="flex items-center">
+                    <div class="w-12 h-12 bg-primary-100 rounded-lg flex items-center justify-center">
+                        <svg class="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"/>
+                        </svg>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600">Estudiantes</p>
+                        <p id="totalStudents" class="text-2xl font-bold text-gray-900">0</p>
+                    </div>
+                </div>
+            </div>
+            <div class="stats-card success">
+                <div class="flex items-center">
+                    <div class="w-12 h-12 bg-success-100 rounded-lg flex items-center justify-center">
+                        <svg class="w-6 h-6 text-success-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+                        </svg>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600">Promociones</p>
+                        <p id="totalPromotions" class="text-2xl font-bold text-gray-900">0</p>
+                    </div>
+                </div>
+            </div>
+            <div class="stats-card warning">
+                <div class="flex items-center">
+                    <div class="w-12 h-12 bg-warning-100 rounded-lg flex items-center justify-center">
+                        <svg class="w-6 h-6 text-warning-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                        </svg>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600">Asignaturas</p>
+                        <p id="totalSubjects" class="text-2xl font-bold text-gray-900">0</p>
+                    </div>
+                </div>
+            </div>
+            <div class="stats-card danger">
+                <div class="flex items-center">
+                    <div class="w-12 h-12 bg-danger-100 rounded-lg flex items-center justify-center">
+                        <svg class="w-6 h-6 text-danger-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                        </svg>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600">Profesores</p>
+                        <p id="totalTeachers" class="text-2xl font-bold text-gray-900">0</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Dashboard Sections -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- Promotions Section -->
+            <div class="dashboard-card p-6">
+                <div class="section-header">
+                    <div>
+                        <h2 class="text-xl font-bold text-gray-900">Promociones</h2>
+                        <p class="text-sm text-gray-600 mt-1">Gestiona las promociones estudiantiles</p>
+                    </div>
+                    <button onclick="showAddPromotionModal()" class="btn-primary text-sm">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                        </svg>
+                        Nueva
+                    </button>
+                </div>
+                <div id="promotionsList" class="space-y-3">
+                    <div class="empty-state">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+                        </svg>
+                        <p class="text-lg font-medium mb-2">No hay promociones</p>
+                        <p class="text-sm">Comienza creando tu primera promoción</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Subjects Section -->
+            <div class="dashboard-card p-6">
+                <div class="section-header">
+                    <div>
+                        <h2 class="text-xl font-bold text-gray-900">Asignaturas</h2>
+                        <p class="text-sm text-gray-600 mt-1">Administra las materias del sistema</p>
+                    </div>
+                    <button onclick="showAddSubjectModal()" class="btn-primary text-sm">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                        </svg>
+                        Nueva
+                    </button>
+                </div>
+                <div id="subjectsList" class="space-y-3">
+                    <div class="empty-state">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                        </svg>
+                        <p class="text-lg font-medium mb-2">No hay asignaturas</p>
+                        <p class="text-sm">Crea las asignaturas para tu sistema</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Teachers Section -->
+        <div class="dashboard-card p-6 mt-8">
+            <div class="section-header">
+                <div>
+                    <h2 class="text-xl font-bold text-gray-900">Profesores</h2>
+                    <p class="text-sm text-gray-600 mt-1">Gestiona los profesores del sistema</p>
+                </div>
+                <button onclick="showAddTeacherModal()" class="btn-primary text-sm">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                    </svg>
+                    Nuevo Profesor
+                </button>
+            </div>
+            <div id="teachersList" class="space-y-3">
+                <div class="empty-state">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                    </svg>
+                    <p class="text-lg font-medium mb-2">No hay profesores</p>
+                    <p class="text-sm">Agrega profesores al sistema</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Students Overview Section -->
+        <div class="dashboard-card p-6 mt-8">
+            <div class="section-header">
+                <div>
+                    <h2 class="text-xl font-bold text-gray-900">Estudiantes</h2>
+                    <p class="text-sm text-gray-600 mt-1">Vista general de estudiantes por promoción</p>
+                </div>
+                <div class="flex space-x-2">
+                    <button onclick="showAddStudentsModal()" class="btn-primary text-sm">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                        </svg>
+                        Agregar Estudiantes
+                    </button>
+                    <button onclick="showStudentPasscodes()" class="btn-outline text-sm">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/>
+                        </svg>
+                        Passcodes
+                    </button>
+                    <button onclick="exportStudentsData()" class="btn-outline text-sm">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                        </svg>
+                        Exportar
+                    </button>
+                    <button onclick="showAssignSubjectsModal()" class="btn-outline text-sm">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                        </svg>
+                        Asignar Materias
+                    </button>
+                </div>
+            </div>
+            <div id="studentsByPromotion" class="space-y-6">
+                <div class="empty-state">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"/>
+                    </svg>
+                    <p class="text-lg font-medium mb-2">No hay estudiantes</p>
+                    <p class="text-sm">Agrega estudiantes a las promociones</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Floating Action Button -->
+    <div class="floating-action" onclick="toggleActionMenu()" id="floatingActionBtn">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+        </svg>
+    </div>
+
+    <!-- Action Menu -->
+    <div class="action-menu hidden" id="actionMenu">
+        <div class="action-item" onclick="showAddPromotionModal(); hideActionMenu();">
+            <div class="w-8 h-8 bg-primary-100 rounded-lg flex items-center justify-center">
+                <svg class="w-4 h-4 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+                </svg>
+            </div>
+            <span class="text-sm font-medium">Nueva Promoción</span>
+        </div>
+        <div class="action-item" onclick="showAddSubjectModal(); hideActionMenu();">
+            <div class="w-8 h-8 bg-warning-100 rounded-lg flex items-center justify-center">
+                <svg class="w-4 h-4 text-warning-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                </svg>
+            </div>
+            <span class="text-sm font-medium">Nueva Asignatura</span>
+        </div>
+        <div class="action-item" onclick="showAddTeacherModal(); hideActionMenu();">
+            <div class="w-8 h-8 bg-danger-100 rounded-lg flex items-center justify-center">
+                <svg class="w-4 h-4 text-danger-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                </svg>
+            </div>
+            <span class="text-sm font-medium">Nuevo Profesor</span>
+        </div>
+        <div class="action-item" onclick="showAddStudentsModal(); hideActionMenu();">
+            <div class="w-8 h-8 bg-success-100 rounded-lg flex items-center justify-center">
+                <svg class="w-4 h-4 text-success-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"/>
+                </svg>
+            </div>
+            <span class="text-sm font-medium">Agregar Estudiantes</span>
+        </div>
+        <div class="action-item" onclick="showSystemStats(); hideActionMenu();">
+            <div class="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center">
+                <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                </svg>
+            </div>
+            <span class="text-sm font-medium">Estadísticas</span>
+        </div>
+    </div>
+
+    <!-- Add Promotion Modal -->
+    <div id="addPromotionModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="card w-full max-w-md animate-slide-up">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-xl font-bold text-gray-900">Nueva Promoción</h2>
+                    <button onclick="hideAddPromotionModal()" class="text-gray-400 hover:text-gray-600">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+                <form id="addPromotionForm" class="space-y-4">
+                    <div>
+                        <label for="promotionName" class="block text-sm font-medium text-gray-700 mb-1">Nombre de la Promoción</label>
+                        <input type="text" id="promotionName" name="name" required class="input" placeholder="Ej: Prom25">
+                    </div>
+                    <div>
+                        <label for="promotionTurn" class="block text-sm font-medium text-gray-700 mb-1">Turno</label>
+                        <select id="promotionTurn" name="turn" required class="input">
+                            <option value="">Seleccionar turno</option>
+                            <option value="AM">AM</option>
+                            <option value="PM">PM</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="promotionYear" class="block text-sm font-medium text-gray-700 mb-1">Año de Graduación</label>
+                        <input type="number" id="promotionYear" name="graduationYear" required class="input" placeholder="Ej: 2025" min="2020" max="2030">
+                    </div>
+                    <div class="flex space-x-3">
+                        <button type="submit" class="btn-primary flex-1">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                            </svg>
+                            Crear Promoción
+                        </button>
+                        <button type="button" onclick="hideAddPromotionModal()" class="btn-secondary flex-1">
+                            Cancelar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Subject Modal -->
+    <div id="addSubjectModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="card w-full max-w-lg animate-slide-up">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-xl font-bold text-gray-900">Nueva Asignatura</h2>
+                    <button onclick="hideAddSubjectModal()" class="text-gray-400 hover:text-gray-600">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+                <form id="addSubjectForm" class="space-y-4">
+                    <div>
+                        <label for="subjectName" class="block text-sm font-medium text-gray-700 mb-1">Nombre de la Asignatura</label>
+                        <input type="text" id="subjectName" name="name" required class="input" placeholder="Ej: Matemáticas">
+                    </div>
+                    <div>
+                        <label for="subjectTeacher" class="block text-sm font-medium text-gray-700 mb-1">Profesor Asignado</label>
+                        <select id="subjectTeacher" name="teacherId" required class="input">
+                            <option value="">Seleccionar profesor</option>
+                        </select>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="subjectAcademicYear" class="block text-sm font-medium text-gray-700 mb-1">Año Lectivo</label>
+                            <input type="number" id="subjectAcademicYear" name="academicYear" required class="input" placeholder="Ej: 2025" min="2020" max="2030">
+                        </div>
+                        <div>
+                            <label for="subjectSemester" class="block text-sm font-medium text-gray-700 mb-1">Semestre</label>
+                            <select id="subjectSemester" name="semester" required class="input">
+                                <option value="">Seleccionar semestre</option>
+                                <option value="1">Primer Semestre</option>
+                                <option value="2">Segundo Semestre</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div>
+                        <label for="subjectPromotions" class="block text-sm font-medium text-gray-700 mb-1">Promociones</label>
+                        <div id="promotionsCheckboxes" class="space-y-2 max-h-40 overflow-y-auto">
+                            <!-- Promotions checkboxes will be loaded here -->
+                        </div>
+                    </div>
+                    <div class="flex space-x-3">
+                        <button type="submit" class="btn-primary flex-1">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                            </svg>
+                            Crear Asignatura
+                        </button>
+                        <button type="button" onclick="hideAddSubjectModal()" class="btn-secondary flex-1">
+                            Cancelar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Teacher Modal -->
+    <div id="addTeacherModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="card w-full max-w-md animate-slide-up">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-xl font-bold text-gray-900">Nuevo Profesor</h2>
+                    <button onclick="hideAddTeacherModal()" class="text-gray-400 hover:text-gray-600">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+                <form id="addTeacherForm" class="space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="teacherFirstName" class="block text-sm font-medium text-gray-700 mb-1">Nombre</label>
+                            <input type="text" id="teacherFirstName" name="firstName" required class="input" placeholder="Nombre del profesor">
+                        </div>
+                        <div>
+                            <label for="teacherLastName" class="block text-sm font-medium text-gray-700 mb-1">Apellido</label>
+                            <input type="text" id="teacherLastName" name="lastName" required class="input" placeholder="Apellido del profesor">
+                        </div>
+                    </div>
+                    <div>
+                        <label for="teacherEmail" class="block text-sm font-medium text-gray-700 mb-1">Correo Electrónico</label>
+                        <input type="email" id="teacherEmail" name="email" required class="input" placeholder="profesor@motta.superate.org.pa">
+                    </div>
+                    <div>
+                        <label for="teacherPassword" class="block text-sm font-medium text-gray-700 mb-1">Contraseña</label>
+                        <input type="password" id="teacherPassword" name="password" required class="input" placeholder="Contraseña segura">
+                    </div>
+                    <div>
+                        <label for="teacherSpecialty" class="block text-sm font-medium text-gray-700 mb-1">Especialidad</label>
+                        <input type="text" id="teacherSpecialty" name="specialty" class="input" placeholder="Ej: Matemáticas, Ciencias, etc.">
+                    </div>
+                    <div class="flex space-x-3">
+                        <button type="submit" class="btn-primary flex-1">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                            </svg>
+                            Crear Profesor
+                        </button>
+                        <button type="button" onclick="hideAddTeacherModal()" class="btn-secondary flex-1">
+                            Cancelar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Students Modal -->
+    <div id="addStudentsModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="card w-full max-w-4xl animate-slide-up max-h-[90vh] overflow-y-auto p-6">
+                <div class="flex justify-between items-center mb-6 sticky top-0 bg-white pt-0 pb-2 z-10">
+                    <h2 class="text-xl font-bold text-gray-900">Agregar Estudiantes</h2>
+                    <button onclick="hideAddStudentsModal()" class="text-gray-400 hover:text-gray-600">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+                <form id="addStudentsForm" class="space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="studentPromotion" class="block text-sm font-medium text-gray-700 mb-1">Promoción</label>
+                            <select id="studentPromotion" name="promotionId" required class="input">
+                                <option value="">Seleccionar promoción</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="addMethod" class="block text-sm font-medium text-gray-700 mb-1">Método de Agregado</label>
+                            <select id="addMethod" name="method" required class="input">
+                                <option value="individual">Individual</option>
+                                <option value="bulk">En Masa</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <!-- Individual Student Form -->
+                    <div id="individualStudentForm" class="space-y-4">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label for="studentFirstName" class="block text-sm font-medium text-gray-700 mb-1">Nombre</label>
+                                <input type="text" id="studentFirstName" name="firstName" class="input" placeholder="Nombre del estudiante">
+                            </div>
+                            <div>
+                                <label for="studentLastName" class="block text-sm font-medium text-gray-700 mb-1">Apellido</label>
+                                <input type="text" id="studentLastName" name="lastName" class="input" placeholder="Apellido del estudiante">
+                            </div>
+                        </div>
+                        <div>
+                            <label for="studentEmail" class="block text-sm font-medium text-gray-700 mb-1">Correo Electrónico</label>
+                            <input type="email" id="studentEmail" name="email" class="input" placeholder="correo@ejemplo.com">
+                        </div>
+                        <div>
+                            <label for="studentLevel" class="block text-sm font-medium text-gray-700 mb-1">Nivel</label>
+                            <select id="studentLevel" name="level" required class="input">
+                                <option value="Freshman">Freshman</option>
+                                <option value="Junior">Junior</option>
+                                <option value="Senior">Senior</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Bulk Students Form -->
+                    <div id="bulkStudentsForm" class="space-y-4 hidden">
+                        <div>
+                            <label for="bulkStudentsData" class="block text-sm font-medium text-gray-700 mb-1">Datos de Estudiantes (Solo Nombre y Apellido)</label>
+                            <textarea id="bulkStudentsData" name="bulkData" rows="10" class="input" placeholder="Nombre,Apellido&#10;Juan,Pérez&#10;María,García&#10;Anaís,Cedeño&#10;José,Martínez" oninput="previewEmails()"></textarea>
+                        </div>
+                        <div>
+                            <label for="bulkStudentLevel" class="block text-sm font-medium text-gray-700 mb-1">Nivel para todos los estudiantes</label>
+                            <select id="bulkStudentLevel" name="level" required class="input">
+                                <option value="Freshman">Freshman</option>
+                                <option value="Junior">Junior</option>
+                                <option value="Senior">Senior</option>
+                            </select>
+                        </div>
+                        <div class="text-sm text-gray-600 bg-blue-50 p-3 rounded-lg">
+                            <p class="font-medium text-blue-800 mb-2">📧 Los correos se generarán automáticamente con el formato:</p>
+                            <p class="text-blue-700"><code>nombre.apellido[año-promoción]@motta.superate.org.pa</code></p>
+                            <p class="text-blue-700 mt-1">Ejemplo: <code>isabel.carvajal2025@motta.superate.org.pa</code></p>
+                            <p class="text-blue-700 mt-1">Los caracteres especiales se normalizarán: Cedeño → cedeno, Anaís → anais</p>
+                            
+                            <div class="mt-3 p-2 bg-white rounded border">
+                                <p class="font-medium text-gray-700 mb-1">📋 Ejemplo de datos (copia y pega):</p>
+                                <code class="text-xs text-gray-600 block">
+                                    Juan,Pérez<br>
+                                    María,García<br>
+                                    Anaís,Cedeño<br>
+                                    José,Martínez<br>
+                                    Carmen,Rodríguez
+                                </code>
+                            </div>
+                            
+                            <div class="mt-3 p-2 bg-yellow-50 border border-yellow-200 rounded">
+                                <p class="font-medium text-yellow-800 mb-1">🔑 Información sobre Passcodes:</p>
+                                <p class="text-xs text-yellow-700">
+                                    • Cada estudiante tendrá un passcode único generado automáticamente<br>
+                                    • Los estudiantes usan su email + passcode para hacer login<br>
+                                    • Usa "Ver Passcodes" después de agregar para ver las credenciales
+                                </p>
+                            </div>
+                        </div>
+                        
+                        <!-- Preview de emails -->
+                        <div id="emailPreview" class="hidden">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">📧 Vista Previa de Emails:</label>
+                            <div id="emailPreviewContent" class="bg-gray-50 p-3 rounded-lg max-h-40 overflow-y-auto text-sm">
+                                <!-- Preview content will be generated here -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex space-x-3 sticky bottom-0 bg-white pt-4 pb-0 z-10">
+                        <button type="submit" class="btn-primary flex-1">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                            </svg>
+                            Agregar Estudiantes
+                        </button>
+                        <button type="button" onclick="clearBulkForm()" class="btn-warning flex-1">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                            </svg>
+                            Limpiar
+                        </button>
+                        <button type="button" onclick="hideAddStudentsModal()" class="btn-secondary flex-1">
+                            Cancelar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Promotion Modal -->
+    <div id="editPromotionModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="card w-full max-w-md animate-slide-up">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-xl font-bold text-gray-900">Editar Promoción</h2>
+                    <button onclick="hideEditPromotionModal()" class="text-gray-400 hover:text-gray-600">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+                <form id="editPromotionForm" class="space-y-4">
+                    <input type="hidden" id="editPromotionId" name="id">
+                    <div>
+                        <label for="editPromotionName" class="block text-sm font-medium text-gray-700 mb-1">Nombre de la Promoción</label>
+                        <input type="text" id="editPromotionName" name="name" required class="input" placeholder="Ej: Prom25">
+                    </div>
+                    <div>
+                        <label for="editPromotionTurn" class="block text-sm font-medium text-gray-700 mb-1">Turno</label>
+                        <select id="editPromotionTurn" name="turn" required class="input">
+                            <option value="">Seleccionar turno</option>
+                            <option value="AM">AM</option>
+                            <option value="PM">PM</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="editPromotionYear" class="block text-sm font-medium text-gray-700 mb-1">Año de Graduación</label>
+                        <input type="number" id="editPromotionYear" name="graduationYear" required class="input" placeholder="Ej: 2025" min="2020" max="2030">
+                    </div>
+                    <div class="flex space-x-3">
+                        <button type="submit" class="btn-primary flex-1">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                            </svg>
+                            Actualizar Promoción
+                        </button>
+                        <button type="button" onclick="hideEditPromotionModal()" class="btn-secondary flex-1">
+                            Cancelar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Subject Modal -->
+    <div id="editSubjectModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="card w-full max-w-lg animate-slide-up">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-xl font-bold text-gray-900">Editar Asignatura</h2>
+                    <button onclick="hideEditSubjectModal()" class="text-gray-400 hover:text-gray-600">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+                <form id="editSubjectForm" class="space-y-4">
+                    <input type="hidden" id="editSubjectId" name="id">
+                    <div>
+                        <label for="editSubjectName" class="block text-sm font-medium text-gray-700 mb-1">Nombre de la Asignatura</label>
+                        <input type="text" id="editSubjectName" name="name" required class="input" placeholder="Ej: Matemáticas">
+                    </div>
+                    <div>
+                        <label for="editSubjectTeacher" class="block text-sm font-medium text-gray-700 mb-1">Profesor Asignado</label>
+                        <select id="editSubjectTeacher" name="teacherId" required class="input">
+                            <option value="">Seleccionar profesor</option>
+                        </select>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="editSubjectAcademicYear" class="block text-sm font-medium text-gray-700 mb-1">Año Lectivo</label>
+                            <input type="number" id="editSubjectAcademicYear" name="academicYear" required class="input" placeholder="Ej: 2025" min="2020" max="2030">
+                        </div>
+                        <div>
+                            <label for="editSubjectSemester" class="block text-sm font-medium text-gray-700 mb-1">Semestre</label>
+                            <select id="editSubjectSemester" name="semester" required class="input">
+                                <option value="">Seleccionar semestre</option>
+                                <option value="1">Primer Semestre</option>
+                                <option value="2">Segundo Semestre</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div>
+                        <label for="editSubjectPromotions" class="block text-sm font-medium text-gray-700 mb-1">Promociones</label>
+                        <div id="editPromotionsCheckboxes" class="space-y-2 max-h-40 overflow-y-auto">
+                            <!-- Promotions checkboxes will be loaded here -->
+                        </div>
+                    </div>
+                    <div class="flex space-x-3">
+                        <button type="submit" class="btn-primary flex-1">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                            </svg>
+                            Actualizar Asignatura
+                        </button>
+                        <button type="button" onclick="hideEditSubjectModal()" class="btn-secondary flex-1">
+                            Cancelar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Teacher Modal -->
+    <div id="editTeacherModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="card w-full max-w-md animate-slide-up">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-xl font-bold text-gray-900">Editar Profesor</h2>
+                    <button onclick="hideEditTeacherModal()" class="text-gray-400 hover:text-gray-600">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+                <form id="editTeacherForm" class="space-y-4">
+                    <input type="hidden" id="editTeacherId" name="id">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="editTeacherFirstName" class="block text-sm font-medium text-gray-700 mb-1">Nombre</label>
+                            <input type="text" id="editTeacherFirstName" name="firstName" required class="input" placeholder="Nombre del profesor">
+                        </div>
+                        <div>
+                            <label for="editTeacherLastName" class="block text-sm font-medium text-gray-700 mb-1">Apellido</label>
+                            <input type="text" id="editTeacherLastName" name="lastName" required class="input" placeholder="Apellido del profesor">
+                        </div>
+                    </div>
+                    <div>
+                        <label for="editTeacherEmail" class="block text-sm font-medium text-gray-700 mb-1">Correo Electrónico</label>
+                        <input type="email" id="editTeacherEmail" name="email" required class="input" placeholder="profesor@motta.superate.org.pa">
+                    </div>
+                    <div>
+                        <label for="editTeacherSpecialty" class="block text-sm font-medium text-gray-700 mb-1">Especialidad</label>
+                        <input type="text" id="editTeacherSpecialty" name="specialty" class="input" placeholder="Ej: Matemáticas, Ciencias, etc.">
+                    </div>
+                    <div class="flex space-x-3">
+                        <button type="submit" class="btn-primary flex-1">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                            </svg>
+                            Actualizar Profesor
+                        </button>
+                        <button type="button" onclick="hideEditTeacherModal()" class="btn-secondary flex-1">
+                            Cancelar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Student Modal -->
+    <div id="editStudentModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="card w-full max-w-md animate-slide-up">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-xl font-bold text-gray-900">Editar Estudiante</h2>
+                    <button onclick="hideEditStudentModal()" class="text-gray-400 hover:text-gray-600">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+                <form id="editStudentForm" class="space-y-4">
+                    <input type="hidden" id="editStudentId" name="id">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="editStudentFirstName" class="block text-sm font-medium text-gray-700 mb-1">Nombre</label>
+                            <input type="text" id="editStudentFirstName" name="firstName" required class="input" placeholder="Nombre del estudiante">
+                        </div>
+                        <div>
+                            <label for="editStudentLastName" class="block text-sm font-medium text-gray-700 mb-1">Apellido</label>
+                            <input type="text" id="editStudentLastName" name="lastName" required class="input" placeholder="Apellido del estudiante">
+                        </div>
+                    </div>
+                    <div>
+                        <label for="editStudentEmail" class="block text-sm font-medium text-gray-700 mb-1">Correo Electrónico</label>
+                        <input type="email" id="editStudentEmail" name="email" required class="input" placeholder="estudiante@motta.superate.org.pa">
+                    </div>
+                    <div>
+                        <label for="editStudentPromotion" class="block text-sm font-medium text-gray-700 mb-1">Promoción</label>
+                        <select id="editStudentPromotion" name="promotionId" required class="input">
+                            <option value="">Seleccionar promoción</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="editStudentLevel" class="block text-sm font-medium text-gray-700 mb-1">Nivel</label>
+                        <select id="editStudentLevel" name="level" required class="input">
+                            <option value="Freshman">Freshman</option>
+                            <option value="Junior">Junior</option>
+                            <option value="Senior">Senior</option>
+                        </select>
+                    </div>
+                    <div class="flex space-x-3">
+                        <button type="submit" class="btn-primary flex-1">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                            </svg>
+                            Actualizar Estudiante
+                        </button>
+                        <button type="button" onclick="hideEditStudentModal()" class="btn-secondary flex-1">
+                            Cancelar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Assign Subjects Modal -->
+    <div id="assignSubjectsModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="card w-full max-w-lg animate-slide-up">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-xl font-bold text-gray-900">Asignar Materias a Estudiantes</h2>
+                    <button onclick="hideAssignSubjectsModal()" class="text-gray-400 hover:text-gray-600">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+                <form id="assignSubjectsForm" class="space-y-4">
+                    <div>
+                        <label for="assignPromotion" class="block text-sm font-medium text-gray-700 mb-1">Promoción</label>
+                        <select id="assignPromotion" name="promotionId" required class="input">
+                            <option value="">Seleccionar promoción</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="assignStudents" class="block text-sm font-medium text-gray-700 mb-1">Estudiantes</label>
+                        <select id="assignStudents" name="studentIds" multiple class="input" size="6">
+                            <option value="">Cargando estudiantes...</option>
+                        </select>
+                        <p class="text-xs text-gray-500 mt-1">Mantén Ctrl (Cmd en Mac) para seleccionar múltiples estudiantes</p>
+                    </div>
+                    <div>
+                        <label for="assignSubjects" class="block text-sm font-medium text-gray-700 mb-1">Materias</label>
+                        <div id="assignSubjectsCheckboxes" class="space-y-2 max-h-40 overflow-y-auto">
+                            <!-- Subject checkboxes will be loaded here -->
+                        </div>
+                    </div>
+                    <div class="flex space-x-3">
+                        <button type="submit" class="btn-primary flex-1">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                            </svg>
+                            Asignar Materias
+                        </button>
+                        <button type="button" onclick="hideAssignSubjectsModal()" class="btn-secondary flex-1">
+                            Cancelar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- System Stats Modal -->
+    <div id="systemStatsModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="card w-full max-w-2xl animate-slide-up">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-xl font-bold text-gray-900">Estadísticas del Sistema</h2>
+                    <button onclick="hideSystemStats()" class="text-gray-400 hover:text-gray-600">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+                <div id="systemStatsContent" class="space-y-4">
+                    <!-- Stats content will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Container -->
+    <div id="notificationContainer"></div>
+
+    <!-- Scripts -->
+    <script type="module" src="js/admin-dashboard.js"></script>
+    <script type="module" src="js/debug-admin.js"></script>
+</body>
+</html>

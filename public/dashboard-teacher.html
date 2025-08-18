@@ -97,6 +97,38 @@
             </div>
         </div>
 
+        <!-- Academic Period Selector -->
+        <div class="card mb-6">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <div class="flex items-center space-x-2">
+                        <svg class="w-5 h-5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                        </svg>
+                        <span class="text-sm font-medium text-gray-700">Período Académico:</span>
+                    </div>
+                    <select id="academicYearSelect" class="input w-32">
+                        <option value="">Año</option>
+                    </select>
+                    <select id="semesterSelect" class="input w-32">
+                        <option value="">Semestre</option>
+                        <option value="1">1er Semestre</option>
+                        <option value="2">2do Semestre</option>
+                    </select>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <span id="currentPeriodDisplay" class="text-sm text-gray-600">Selecciona un período</span>
+                    <button id="managePeriodsBtn" onclick="showManagePeriodsModal()" class="btn-secondary text-sm">
+                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                        </svg>
+                        Gestionar Períodos
+                    </button>
+                </div>
+            </div>
+        </div>
+
         <!-- Action Buttons -->
         <div class="flex flex-wrap gap-4 mb-8">
             <button onclick="showAddGradeModal()" class="btn-primary">
@@ -733,6 +765,116 @@
                         </button>
                     </div>
                 </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Subject Modal -->
+    <div id="editSubjectModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="card w-full max-w-md animate-slide-up">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold text-gray-900">Editar Asignatura</h2>
+                    <button onclick="hideEditSubjectModal()" class="text-gray-400 hover:text-gray-600">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+                
+                <form id="editSubjectForm" class="space-y-4">
+                    <input type="hidden" id="editSubjectId" name="id">
+                    <div>
+                        <label for="editSubjectName" class="block text-sm font-medium text-gray-700 mb-1">Nombre de la Asignatura</label>
+                        <input type="text" id="editSubjectName" name="name" required class="input" placeholder="Ej: Matemáticas">
+                    </div>
+                    
+                    <div>
+                        <label for="editSubjectCode" class="block text-sm font-medium text-gray-700 mb-1">Código</label>
+                        <input type="text" id="editSubjectCode" name="code" required class="input" placeholder="Ej: MAT101">
+                    </div>
+                    
+                    <div>
+                        <label for="editSubjectDescription" class="block text-sm font-medium text-gray-700 mb-1">Descripción (opcional)</label>
+                        <textarea id="editSubjectDescription" name="description" rows="3" class="input" placeholder="Descripción de la asignatura"></textarea>
+                    </div>
+                    
+                    <div class="flex space-x-3">
+                        <button type="submit" class="btn-primary flex-1">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                            </svg>
+                            Actualizar Asignatura
+                        </button>
+                        <button type="button" onclick="hideEditSubjectModal()" class="btn-secondary flex-1">
+                            Cancelar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Manage Academic Periods Modal -->
+    <div id="managePeriodsModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="card w-full max-w-2xl animate-slide-up">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold text-gray-900">Gestionar Períodos Académicos</h2>
+                    <button onclick="hideManagePeriodsModal()" class="text-gray-400 hover:text-gray-600">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+                
+                <div class="space-y-6">
+                    <!-- Current Periods -->
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Períodos Configurados</h3>
+                        <div id="periodsList" class="space-y-3">
+                            <!-- Periods will be loaded here -->
+                        </div>
+                    </div>
+                    
+                    <!-- Add New Period -->
+                    <div class="border-t pt-6">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Agregar Nuevo Período</h3>
+                        <form id="addPeriodForm" class="space-y-4">
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label for="newAcademicYear" class="block text-sm font-medium text-gray-700 mb-1">Año Académico</label>
+                                    <input type="number" id="newAcademicYear" name="academicYear" required class="input" placeholder="Ej: 2024" min="2020" max="2030">
+                                </div>
+                                <div>
+                                    <label for="newSemester" class="block text-sm font-medium text-gray-700 mb-1">Semestre</label>
+                                    <select id="newSemester" name="semester" required class="input">
+                                        <option value="">Seleccionar</option>
+                                        <option value="1">1er Semestre</option>
+                                        <option value="2">2do Semestre</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <label for="periodName" class="block text-sm font-medium text-gray-700 mb-1">Nombre del Período (opcional)</label>
+                                <input type="text" id="periodName" name="name" class="input" placeholder="Ej: Año Escolar 2024">
+                            </div>
+                            
+                            <div class="flex space-x-3">
+                                <button type="submit" class="btn-primary flex-1">
+                                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                                    </svg>
+                                    Agregar Período
+                                </button>
+                                <button type="button" onclick="hideManagePeriodsModal()" class="btn-secondary flex-1">
+                                    Cancelar
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

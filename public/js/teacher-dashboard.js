@@ -18,7 +18,7 @@
 
 import { auth, db } from './firebase-config.js';
 import { onAuthStateChanged, signOut as firebaseSignOut } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js';
-import { doc, getDoc, setDoc, collection, query, where, getDocs, addDoc, updateDoc, deleteDoc, orderBy, serverTimestamp, limit } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js';
+import { doc, getDoc, setDoc, collection, query, where, getDocs, addDoc, updateDoc, deleteDoc, orderBy, serverTimestamp, limit, writeBatch } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js';
 import { createUserWithEmailAndPassword } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js';
 
 // Global variables
@@ -32,6 +32,334 @@ let gradeConfiguration = {
     type: 'simple',
     categories: []
 };
+
+// Academic Period Management (Legacy - will be phased out)
+let academicPeriods = [];
+let currentAcademicYear = null;
+let currentSemester = null;
+
+// New Promotion-based system
+let assignedSubjects = [];
+let assignedStudents = [];
+
+// Academic Period Management Functions (Legacy)
+async function loadAcademicPeriods() {
+    try {
+        const periodsQuery = query(
+            collection(db, 'academicPeriods'),
+            where('teacherId', '==', currentTeacher.uid)
+        );
+        
+        const snapshot = await getDocs(periodsQuery);
+        academicPeriods = snapshot.docs.map(doc => ({ 
+            id: doc.id, 
+            ...doc.data() 
+        }));
+        
+        // Sort periods by year and semester after loading
+        academicPeriods.sort((a, b) => {
+            if (a.academicYear !== b.academicYear) {
+                return b.academicYear - a.academicYear; // Descending by year
+            }
+            return b.semester - a.semester; // Descending by semester
+        });
+        
+        console.log('Academic periods loaded:', academicPeriods.length);
+        updateAcademicYearSelect();
+        updatePeriodsList();
+    } catch (error) {
+        console.error('Error loading academic periods:', error);
+        showNotification('Error al cargar los períodos académicos', 'error');
+        academicPeriods = [];
+    }
+}
+
+// New Promotion-based Functions
+async function loadAssignedSubjects() {
+    try {
+        // Get subjects assigned to this teacher
+        const subjectsQuery = query(
+            collection(db, 'subjects'),
+            where('teacherId', '==', currentTeacher.uid)
+        );
+        
+        const snapshot = await getDocs(subjectsQuery);
+        assignedSubjects = snapshot.docs.map(doc => ({ 
+            id: doc.id, 
+            ...doc.data() 
+        }));
+        
+        console.log('Assigned subjects loaded:', assignedSubjects.length);
+        updateSubjectsTable();
+    } catch (error) {
+        console.error('Error loading assigned subjects:', error);
+        showNotification('Error al cargar las asignaturas asignadas', 'error');
+        assignedSubjects = [];
+    }
+}
+
+async function loadAssignedStudents() {
+    try {
+        // Get all subjects assigned to this teacher
+        const subjectIds = assignedSubjects.map(subject => subject.id);
+        
+        if (subjectIds.length === 0) {
+            assignedStudents = [];
+            updateStudentsTable();
+            return;
+        }
+        
+        // Get all student-subject assignments for this teacher's subjects
+        const studentSubjectsQuery = query(
+            collection(db, 'studentSubjects'),
+            where('subjectId', 'in', subjectIds)
+        );
+        
+        const studentSubjectsSnapshot = await getDocs(studentSubjectsQuery);
+        const studentIds = [...new Set(studentSubjectsSnapshot.docs.map(doc => doc.data().studentId))];
+        
+        if (studentIds.length === 0) {
+            assignedStudents = [];
+            updateStudentsTable();
+            return;
+        }
+        
+        // Get student details
+        const studentsQuery = query(
+            collection(db, 'users'),
+            where('role', '==', 'student'),
+            where('__name__', 'in', studentIds)
+        );
+        
+        const studentsSnapshot = await getDocs(studentsQuery);
+        assignedStudents = studentsSnapshot.docs.map(doc => ({ 
+            id: doc.id, 
+            ...doc.data() 
+        }));
+        
+        // Sort students by firstName
+        assignedStudents.sort((a, b) => (a.firstName || '').localeCompare(b.firstName || ''));
+        
+        console.log('Assigned students loaded:', assignedStudents.length);
+        updateStudentsTable();
+        updateStudentFilters();
+    } catch (error) {
+        console.error('Error loading assigned students:', error);
+        showNotification('Error al cargar los estudiantes asignados', 'error');
+        assignedStudents = [];
+    }
+}
+
+function updateAcademicYearSelect() {
+    const yearSelect = document.getElementById('academicYearSelect');
+    if (!yearSelect) return;
+    
+    // Get unique years from periods
+    const years = [...new Set(academicPeriods.map(p => p.academicYear))].sort((a, b) => b - a);
+    
+    yearSelect.innerHTML = '<option value="">Año</option>';
+    years.forEach(year => {
+        yearSelect.innerHTML += `<option value="${year}">${year}</option>`;
+    });
+    
+    // Set current selection if available
+    if (currentAcademicYear) {
+        yearSelect.value = currentAcademicYear;
+    }
+}
+
+function updatePeriodsList() {
+    const periodsList = document.getElementById('periodsList');
+    if (!periodsList) return;
+    
+    if (academicPeriods.length === 0) {
+        periodsList.innerHTML = `
+            <div class="text-center py-4 text-gray-500">
+                <p>No hay períodos configurados</p>
+            </div>
+        `;
+        return;
+    }
+    
+    periodsList.innerHTML = academicPeriods.map(period => `
+        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+            <div class="flex items-center space-x-3">
+                <div class="w-8 h-8 bg-primary-100 rounded-lg flex items-center justify-center">
+                    <svg class="w-4 h-4 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                    </svg>
+                </div>
+                <div>
+                    <p class="font-medium text-gray-900">
+                        ${period.name || `Año ${period.academicYear} - ${period.semester === '1' ? '1er' : '2do'} Semestre`}
+                    </p>
+                    <p class="text-sm text-gray-600">
+                        ${period.academicYear} - Semestre ${period.semester}
+                    </p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-2">
+                <button onclick="setCurrentPeriod('${period.academicYear}', '${period.semester}')" class="text-primary-600 hover:text-primary-900 text-sm">
+                    Seleccionar
+                </button>
+                <button onclick="deleteAcademicPeriod('${period.id}')" class="text-danger-600 hover:text-danger-900">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    `).join('');
+}
+
+function setCurrentPeriod(academicYear, semester) {
+    currentAcademicYear = academicYear;
+    currentSemester = semester;
+    
+    // Update selectors
+    const yearSelect = document.getElementById('academicYearSelect');
+    const semesterSelect = document.getElementById('semesterSelect');
+    const periodDisplay = document.getElementById('currentPeriodDisplay');
+    
+    if (yearSelect) yearSelect.value = academicYear;
+    if (semesterSelect) semesterSelect.value = semester;
+    
+    if (periodDisplay) {
+        const period = academicPeriods.find(p => p.academicYear == academicYear && p.semester == semester);
+        const periodName = period?.name || `Año ${academicYear} - ${semester === '1' ? '1er' : '2do'} Semestre`;
+        periodDisplay.textContent = periodName;
+    }
+    
+    // Save to localStorage
+    localStorage.setItem('currentAcademicYear', academicYear);
+    localStorage.setItem('currentSemester', semester);
+    
+    // Reload data with new period
+    loadDashboardData();
+    
+    showNotification(`Período cambiado a: ${periodDisplay?.textContent || `${academicYear} - Semestre ${semester}`}`, 'success');
+}
+
+function showManagePeriodsModal() {
+    const modal = document.getElementById('managePeriodsModal');
+    if (modal) {
+        modal.classList.remove('hidden');
+    }
+}
+
+function hideManagePeriodsModal() {
+    const modal = document.getElementById('managePeriodsModal');
+    if (modal) {
+        modal.classList.add('hidden');
+    }
+}
+
+async function addAcademicPeriod(formData) {
+    try {
+        const periodData = {
+            academicYear: parseInt(formData.get('academicYear')),
+            semester: formData.get('semester'),
+            name: formData.get('name')?.trim() || null,
+            teacherId: currentTeacher.uid,
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp()
+        };
+        
+        // Check if period already exists
+        const existingPeriod = academicPeriods.find(p => 
+            p.academicYear === periodData.academicYear && 
+            p.semester === periodData.semester
+        );
+        
+        if (existingPeriod) {
+            showNotification('Este período ya existe', 'error');
+            return;
+        }
+        
+        await addDoc(collection(db, 'academicPeriods'), periodData);
+        showNotification('Período académico agregado exitosamente', 'success');
+        
+        await loadAcademicPeriods();
+        
+        // Set as current period if it's the first one
+        if (academicPeriods.length === 0) {
+            setCurrentPeriod(periodData.academicYear, periodData.semester);
+        }
+        
+    } catch (error) {
+        console.error('Error adding academic period:', error);
+        showNotification('Error al agregar el período académico', 'error');
+    }
+}
+
+async function deleteAcademicPeriod(periodId) {
+    const period = academicPeriods.find(p => p.id === periodId);
+    if (!period) {
+        showNotification('Período no encontrado', 'error');
+        return;
+    }
+    
+    const confirmed = confirm(`¿Estás seguro de que quieres eliminar el período "${period.name || `Año ${period.academicYear} - Semestre ${period.semester}`}"?\n\nEsta acción eliminará todas las calificaciones y asignaturas asociadas a este período.`);
+    
+    if (!confirmed) {
+        return;
+    }
+    
+    try {
+        showLoading(true);
+        
+        // Delete all grades for this period
+        const gradesQuery = query(
+            collection(db, 'grades'),
+            where('teacherId', '==', currentTeacher.uid),
+            where('academicYear', '==', period.academicYear),
+            where('semester', '==', period.semester)
+        );
+        const gradesSnapshot = await getDocs(gradesQuery);
+        
+        const batch = writeBatch(db);
+        gradesSnapshot.docs.forEach(doc => {
+            batch.delete(doc.ref);
+        });
+        
+        // Delete all subjects for this period
+        const subjectsQuery = query(
+            collection(db, 'subjects'),
+            where('teacherId', '==', currentTeacher.uid),
+            where('academicYear', '==', period.academicYear),
+            where('semester', '==', period.semester)
+        );
+        const subjectsSnapshot = await getDocs(subjectsQuery);
+        
+        subjectsSnapshot.docs.forEach(doc => {
+            batch.delete(doc.ref);
+        });
+        
+        // Delete the period itself
+        batch.delete(doc(db, 'academicPeriods', periodId));
+        
+        await batch.commit();
+        
+        showNotification('Período académico eliminado exitosamente', 'success');
+        
+        // If this was the current period, clear it
+        if (currentAcademicYear == period.academicYear && currentSemester == period.semester) {
+            currentAcademicYear = null;
+            currentSemester = null;
+            localStorage.removeItem('currentAcademicYear');
+            localStorage.removeItem('currentSemester');
+        }
+        
+        await loadAcademicPeriods();
+        await loadDashboardData();
+        
+    } catch (error) {
+        console.error('Error deleting academic period:', error);
+        showNotification('Error al eliminar el período académico', 'error');
+    } finally {
+        showLoading(false);
+    }
+}
 
 // UI Functions
 function showLoading(show) {
@@ -124,6 +452,46 @@ function generatePasscode() {
         result += chars.charAt(Math.floor(Math.random() * chars.length));
     }
     return result;
+}
+
+// Function to normalize text (remove accents and special characters)
+function normalizeText(text) {
+    if (!text) return '';
+    
+    // Convert to lowercase
+    let normalized = text.toLowerCase();
+    
+    // Remove accents and special characters
+    normalized = normalized
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '') // Remove diacritics
+        .replace(/[^a-z0-9]/g, '') // Keep only letters and numbers
+        .trim();
+    
+    return normalized;
+}
+
+// Function to generate email automatically
+function generateEmail(firstName, lastName) {
+    if (!firstName || !lastName) return '';
+    
+    const normalizedFirstName = normalizeText(firstName);
+    const normalizedLastName = normalizeText(lastName);
+    
+    if (!normalizedFirstName || !normalizedLastName) return '';
+    
+    return `${normalizedFirstName}.${normalizedLastName}2026@motta.superate.org.pa`;
+}
+
+// Function to update email field when name or lastname changes
+function updateEmailField(nameInput, lastNameInput, emailInput) {
+    const firstName = nameInput.value.trim();
+    const lastName = lastNameInput.value.trim();
+    
+    if (firstName && lastName) {
+        const generatedEmail = generateEmail(firstName, lastName);
+        emailInput.value = generatedEmail;
+    }
 }
 
 // Check if email already exists in Firestore
@@ -330,15 +698,18 @@ function validateStudentData(studentData) {
 // Global variable to track if we're in the middle of bulk student creation
 let isCreatingBulkStudents = false;
 
+// Global variable to track if we're in the middle of creating individual students
+let isCreatingStudent = false;
+
 // Initialize teacher dashboard
 async function initializeTeacherDashboard() {
     // Store current page to prevent unnecessary redirects
     const currentPage = window.location.href;
     
     onAuthStateChanged(auth, async (user) => {
-        // Skip auth state changes during bulk student creation
-        if (isCreatingBulkStudents) {
-            console.log('⏸️ Skipping auth state change during bulk student creation');
+        // Skip auth state changes during bulk student creation or individual student creation
+        if (isCreatingBulkStudents || isCreatingStudent) {
+            console.log('⏸️ Skipping auth state change during student creation');
             return;
         }
         
@@ -420,12 +791,33 @@ async function loadDashboardData() {
             return;
         }
         
-        await Promise.all([
-            loadStudents(),
-            loadSubjects(),
-            loadGrades(),
-            updateStatistics()
-        ]);
+        // Load assigned subjects and students (new promotion-based system)
+        await loadAssignedSubjects();
+        await loadAssignedStudents();
+        
+        // Also load legacy academic periods for backward compatibility
+        await loadAcademicPeriods();
+        
+        // Load current period from localStorage if not set
+        if (!currentAcademicYear || !currentSemester) {
+            const savedYear = localStorage.getItem('currentAcademicYear');
+            const savedSemester = localStorage.getItem('currentSemester');
+            
+            if (savedYear && savedSemester) {
+                setCurrentPeriod(savedYear, savedSemester);
+            } else if (academicPeriods.length > 0) {
+                // Set the most recent period as current
+                const mostRecent = academicPeriods[0];
+                setCurrentPeriod(mostRecent.academicYear, mostRecent.semester);
+            } else {
+                // No periods configured, show warning
+                showNotification('No hay períodos académicos configurados. Por favor, crea un período académico para comenzar.', 'warning');
+            }
+        }
+        
+        // Load grades for assigned subjects
+        await loadGrades();
+        await updateStatistics();
     } catch (error) {
         console.error('Error loading dashboard data:', error);
         showNotification('Error al cargar los datos', 'error');
@@ -439,11 +831,23 @@ async function loadStudents() {
     try {
         console.log('Loading students...');
         
-        // First, try a simple query without orderBy to test permissions
-        const studentsQuery = query(
-            collection(db, 'users'),
-            where('role', '==', 'student')
-        );
+        let studentsQuery;
+        
+        if (currentAcademicYear && currentSemester) {
+            // Filter students by academic year and semester
+            studentsQuery = query(
+                collection(db, 'users'),
+                where('role', '==', 'student'),
+                where('academicYear', '==', currentAcademicYear),
+                where('semester', '==', currentSemester)
+            );
+        } else {
+            // Load all students for the teacher (fallback)
+            studentsQuery = query(
+                collection(db, 'users'),
+                where('role', '==', 'student')
+            );
+        }
         
         const snapshot = await getDocs(studentsQuery);
         students = snapshot.docs.map(doc => ({ 
@@ -454,7 +858,7 @@ async function loadStudents() {
         // Sort students by firstName after loading
         students.sort((a, b) => (a.firstName || '').localeCompare(b.firstName || ''));
         
-        console.log('Students loaded successfully:', students.length);
+        console.log(`Students loaded for period ${currentAcademicYear}-${currentSemester}:`, students.length);
         updateStudentsTable();
         updateStudentFilters();
     } catch (error) {
@@ -482,7 +886,8 @@ function updateStudentsTable() {
     const levelFilter = document.getElementById('levelFilter')?.value || '';
     const turnFilter = document.getElementById('turnFilter')?.value || '';
     
-    let filteredStudents = students;
+    // Use assigned students instead of all students
+    let filteredStudents = assignedStudents;
     
     // Apply level filter
     if (levelFilter) {
@@ -571,18 +976,21 @@ function updateStudentsTable() {
     `).join('');
 }
 
-// Load subjects
+// Load subjects (Legacy - now using assignedSubjects)
 async function loadSubjects() {
     try {
-        const subjectsQuery = query(collection(db, 'subjects'), orderBy('name'));
-        const snapshot = await getDocs(subjectsQuery);
-        subjects = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        // Use assigned subjects instead of querying
+        subjects = [...assignedSubjects];
         
+        console.log(`Subjects loaded (assigned):`, subjects.length);
         updateSubjectsGrid();
         updateSubjectFilters();
     } catch (error) {
         console.error('Error loading subjects:', error);
         showNotification('Error al cargar las asignaturas', 'error');
+        subjects = [];
+        updateSubjectsGrid();
+        updateSubjectFilters();
     }
 }
 
@@ -609,8 +1017,11 @@ function updateSubjectsGrid() {
             <div class="flex justify-between items-start">
                 <div>
                     <h3 class="text-lg font-semibold text-gray-900">${subject.name}</h3>
-                    <p class="text-sm text-gray-600">${subject.code}</p>
+                    <p class="text-sm text-gray-600">${subject.code || 'Sin código'}</p>
                     ${subject.description ? `<p class="text-sm text-gray-500 mt-2">${subject.description}</p>` : ''}
+                    <p class="text-sm text-gray-500 mt-1">
+                        <span class="font-medium">Promociones:</span> ${subject.promotions?.length || 0}
+                    </p>
                 </div>
                 <div class="flex space-x-2">
                     <button onclick="editSubject('${subject.id}')" class="text-primary-600 hover:text-primary-900">
@@ -634,11 +1045,23 @@ async function loadGrades() {
     try {
         console.log('Loading grades...');
         
-        // First try a simple query without orderBy to test permissions
-        const gradesQuery = query(
-            collection(db, 'grades'),
-            where('teacherId', '==', currentTeacher.uid)
-        );
+        let gradesQuery;
+        
+        if (currentAcademicYear && currentSemester) {
+            // Filter by academic year and semester
+            gradesQuery = query(
+                collection(db, 'grades'),
+                where('teacherId', '==', currentTeacher.uid),
+                where('academicYear', '==', currentAcademicYear),
+                where('semester', '==', currentSemester)
+            );
+        } else {
+            // Load all grades for the teacher (fallback)
+            gradesQuery = query(
+                collection(db, 'grades'),
+                where('teacherId', '==', currentTeacher.uid)
+            );
+        }
         
         const snapshot = await getDocs(gradesQuery);
         grades = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -651,7 +1074,7 @@ async function loadGrades() {
             return 0;
         });
         
-        console.log('Grades loaded successfully:', grades.length);
+        console.log(`Grades loaded for period ${currentAcademicYear}-${currentSemester}:`, grades.length);
         updateGradesTable();
     } catch (error) {
         console.error('Error loading grades:', error);
@@ -779,8 +1202,9 @@ function getGradeColor(grade) {
 
 // Update statistics
 function updateStatistics() {
-    document.getElementById('totalStudents').textContent = students.length;
-    document.getElementById('totalSubjects').textContent = subjects.length;
+    // Use assigned students and subjects for statistics
+    document.getElementById('totalStudents').textContent = assignedStudents.length;
+    document.getElementById('totalSubjects').textContent = assignedSubjects.length;
     
     const pendingGrades = grades.filter(grade => !grade.comment).length;
     document.getElementById('pendingGrades').textContent = pendingGrades;
@@ -794,7 +1218,7 @@ function updateStudentFilters() {
     const gradeStudent = document.getElementById('gradeStudent');
     const studentFilter = document.getElementById('studentFilter');
     
-    const options = students.map(student => 
+    const options = assignedStudents.map(student => 
         `<option value="${student.id}">${student.firstName} ${student.lastName}</option>`
     ).join('');
     
@@ -810,7 +1234,7 @@ function updateSubjectFilters() {
     const gradeSubject = document.getElementById('gradeSubject');
     const subjectFilter = document.getElementById('subjectFilter');
     
-    const options = subjects.map(subject => 
+    const options = assignedSubjects.map(subject => 
         `<option value="${subject.id}">${subject.name}</option>`
     ).join('');
     
@@ -829,15 +1253,89 @@ function updateSubjectFilters() {
 
 function showAddStudentModal() {
     document.getElementById('addStudentModal').classList.remove('hidden');
+    
+    // Add event listeners for automatic email generation
+    setTimeout(() => {
+        const firstNameInput = document.getElementById('studentFirstName');
+        const lastNameInput = document.getElementById('studentLastName');
+        const emailInput = document.getElementById('studentEmail');
+        
+        if (firstNameInput && lastNameInput && emailInput) {
+            // Remove existing event listeners to avoid duplicates
+            firstNameInput.removeEventListener('input', firstNameInput._emailUpdateHandler);
+            lastNameInput.removeEventListener('input', lastNameInput._emailUpdateHandler);
+            
+            // Create new event handlers
+            firstNameInput._emailUpdateHandler = () => {
+                updateEmailField(firstNameInput, lastNameInput, emailInput);
+            };
+            lastNameInput._emailUpdateHandler = () => {
+                updateEmailField(firstNameInput, lastNameInput, emailInput);
+            };
+            
+            // Add event listeners
+            firstNameInput.addEventListener('input', firstNameInput._emailUpdateHandler);
+            lastNameInput.addEventListener('input', lastNameInput._emailUpdateHandler);
+        }
+    }, 100); // Small delay to ensure DOM is ready
 }
 
 function hideAddStudentModal() {
     document.getElementById('addStudentModal').classList.add('hidden');
     document.getElementById('addStudentForm').reset();
+    
+    // Clean up event listeners
+    const firstNameInput = document.getElementById('studentFirstName');
+    const lastNameInput = document.getElementById('studentLastName');
+    
+    if (firstNameInput && firstNameInput._emailUpdateHandler) {
+        firstNameInput.removeEventListener('input', firstNameInput._emailUpdateHandler);
+        delete firstNameInput._emailUpdateHandler;
+    }
+    
+    if (lastNameInput && lastNameInput._emailUpdateHandler) {
+        lastNameInput.removeEventListener('input', lastNameInput._emailUpdateHandler);
+        delete lastNameInput._emailUpdateHandler;
+    }
 }
 
 function showBulkAddStudentModal() {
     document.getElementById('bulkAddStudentModal').classList.remove('hidden');
+    
+    // Add event listeners to existing inputs for automatic email generation
+    setTimeout(() => {
+        const studentsList = document.getElementById('bulkStudentsList');
+        if (studentsList) {
+            const firstNameInputs = studentsList.querySelectorAll('input[name="bulkFirstName[]"]');
+            const lastNameInputs = studentsList.querySelectorAll('input[name="bulkLastName[]"]');
+            const emailInputs = studentsList.querySelectorAll('input[name="bulkEmail[]"]');
+            
+            // Add event listeners to each row
+            for (let i = 0; i < firstNameInputs.length; i++) {
+                const firstNameInput = firstNameInputs[i];
+                const lastNameInput = lastNameInputs[i];
+                const emailInput = emailInputs[i];
+                
+                if (firstNameInput && lastNameInput && emailInput) {
+                    // Remove existing event listeners to avoid duplicates
+                    firstNameInput.removeEventListener('input', firstNameInput._emailUpdateHandler);
+                    lastNameInput.removeEventListener('input', lastNameInput._emailUpdateHandler);
+                    
+                    // Create new event handlers
+                    firstNameInput._emailUpdateHandler = () => {
+                        updateEmailField(firstNameInput, lastNameInput, emailInput);
+                    };
+                    lastNameInput._emailUpdateHandler = () => {
+                        updateEmailField(firstNameInput, lastNameInput, emailInput);
+                    };
+                    
+                    // Add event listeners
+                    firstNameInput.addEventListener('input', firstNameInput._emailUpdateHandler);
+                    lastNameInput.addEventListener('input', lastNameInput._emailUpdateHandler);
+                }
+            }
+        }
+    }, 100); // Small delay to ensure DOM is ready
 }
 
 function hideBulkAddStudentModal() {
@@ -875,6 +1373,22 @@ function resetBulkAddStudentModal() {
                 </button>
             </div>
         `;
+        
+        // Add event listeners for automatic email generation to the initial row
+        const firstNameInput = studentsList.querySelector('input[name="bulkFirstName[]"]');
+        const lastNameInput = studentsList.querySelector('input[name="bulkLastName[]"]');
+        const emailInput = studentsList.querySelector('input[name="bulkEmail[]"]');
+        
+        if (firstNameInput && lastNameInput && emailInput) {
+            firstNameInput.addEventListener('input', () => {
+                updateEmailField(firstNameInput, lastNameInput, emailInput);
+            });
+            
+            lastNameInput.addEventListener('input', () => {
+                updateEmailField(firstNameInput, lastNameInput, emailInput);
+            });
+        }
+        
         console.log('✅ Student list reset successfully');
     } else {
         console.error('❌ Students list element not found!');
@@ -890,6 +1404,80 @@ function showAddSubjectModal() {
 function hideAddSubjectModal() {
     document.getElementById('addSubjectModal').classList.add('hidden');
     document.getElementById('addSubjectForm').reset();
+}
+
+// Edit Subject Modal Functions
+function showEditSubjectModal(subjectId) {
+    const subject = subjects.find(s => s.id === subjectId);
+    if (!subject) {
+        showNotification('Asignatura no encontrada', 'error');
+        return;
+    }
+    
+    // Populate the form with subject data
+    document.getElementById('editSubjectId').value = subject.id;
+    document.getElementById('editSubjectName').value = subject.name;
+    document.getElementById('editSubjectCode').value = subject.code;
+    document.getElementById('editSubjectDescription').value = subject.description || '';
+    
+    // Show the modal
+    document.getElementById('editSubjectModal').classList.remove('hidden');
+}
+
+function hideEditSubjectModal() {
+    document.getElementById('editSubjectModal').classList.add('hidden');
+    document.getElementById('editSubjectForm').reset();
+}
+
+// Subject Management Functions
+function editSubject(subjectId) {
+    showEditSubjectModal(subjectId);
+}
+
+async function deleteSubject(subjectId) {
+    const subject = subjects.find(s => s.id === subjectId);
+    if (!subject) {
+        showNotification('Asignatura no encontrada', 'error');
+        return;
+    }
+    
+    // Show confirmation dialog
+    const confirmed = confirm(`¿Estás seguro de que quieres eliminar la asignatura "${subject.name}"?\n\nEsta acción no se puede deshacer y también eliminará todas las calificaciones asociadas a esta asignatura.`);
+    
+    if (!confirmed) {
+        return;
+    }
+    
+    try {
+        showLoading(true);
+        
+        // First, delete all grades associated with this subject
+        const gradesQuery = query(
+            collection(db, 'grades'),
+            where('subjectId', '==', subjectId)
+        );
+        const gradesSnapshot = await getDocs(gradesQuery);
+        
+        // Delete grades in batches
+        const batch = writeBatch(db);
+        gradesSnapshot.docs.forEach(doc => {
+            batch.delete(doc.ref);
+        });
+        await batch.commit();
+        
+        // Then delete the subject
+        await deleteDoc(doc(db, 'subjects', subjectId));
+        
+        showNotification('Asignatura eliminada exitosamente', 'success');
+        await loadSubjects();
+        await loadGrades(); // Reload grades to update the table
+        updateStatistics();
+    } catch (error) {
+        console.error('Error deleting subject:', error);
+        showNotification('Error al eliminar la asignatura', 'error');
+    } finally {
+        showLoading(false);
+    }
 }
 
 // Tab functions
@@ -920,12 +1508,20 @@ document.addEventListener('DOMContentLoaded', function() {
             e.preventDefault();
             
             const formData = new FormData(e.target);
+            // Validate that a period is selected
+            if (!currentAcademicYear || !currentSemester) {
+                showNotification('Por favor selecciona un período académico antes de agregar una calificación', 'error');
+                return;
+            }
+            
             const gradeData = {
                 studentId: formData.get('student'),
                 subjectId: formData.get('subject'),
                 value: parseFloat(formData.get('grade')),
                 comment: formData.get('comment'),
                 teacherId: currentTeacher.uid,
+                academicYear: currentAcademicYear,
+                semester: currentSemester,
                 createdAt: serverTimestamp()
             };
             
@@ -951,6 +1547,12 @@ document.addEventListener('DOMContentLoaded', function() {
         addStudentForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         
+        // Validate that a period is selected
+        if (!currentAcademicYear || !currentSemester) {
+            showNotification('Por favor selecciona un período académico antes de crear un estudiante', 'error');
+            return;
+        }
+        
         const formData = new FormData(e.target);
         const studentData = {
             firstName: formData.get('firstName').trim(),
@@ -961,6 +1563,8 @@ document.addEventListener('DOMContentLoaded', function() {
             role: 'student',
             passcode: generatePasscode(),
             isActive: true,
+            academicYear: currentAcademicYear,
+            semester: currentSemester,
             createdAt: serverTimestamp()
         };
         
@@ -974,12 +1578,16 @@ document.addEventListener('DOMContentLoaded', function() {
         try {
             showLoading(true);
             
+            // Set flag to prevent auth state change redirects during student creation
+            isCreatingStudent = true;
+            
             // Enhanced email checking
             console.log(`🔍 Checking email before creation: ${studentData.email}`);
             const emailCheck = await checkEmailExistsWithOrphanedHandling(studentData.email);
             if (emailCheck.exists) {
                 showNotification(`El email ${studentData.email} ya está registrado en el sistema`, 'error');
                 showLoading(false);
+                isCreatingStudent = false;
                 return;
             }
             
@@ -1040,6 +1648,8 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         } finally {
             showLoading(false);
+            // Reset the flag after student creation is complete
+            isCreatingStudent = false;
         }
     });
     }
@@ -1051,11 +1661,19 @@ document.addEventListener('DOMContentLoaded', function() {
         e.preventDefault();
         
         const formData = new FormData(e.target);
+        // Validate that a period is selected
+        if (!currentAcademicYear || !currentSemester) {
+            showNotification('Por favor selecciona un período académico antes de crear una asignatura', 'error');
+            return;
+        }
+        
         const subjectData = {
             name: formData.get('name').trim(),
             code: formData.get('code').trim(),
             description: formData.get('description').trim(),
             teacherId: currentTeacher.uid,
+            academicYear: currentAcademicYear,
+            semester: currentSemester,
             createdAt: serverTimestamp()
         };
         
@@ -1075,6 +1693,38 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     }
     
+    // Edit Subject Form - Check if form exists before adding event listener
+    const editSubjectForm = document.getElementById('editSubjectForm');
+    if (editSubjectForm) {
+        editSubjectForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            const subjectId = formData.get('id');
+            const subjectData = {
+                name: formData.get('name').trim(),
+                code: formData.get('code').trim(),
+                description: formData.get('description').trim(),
+                teacherId: currentTeacher.uid,
+                updatedAt: serverTimestamp()
+            };
+            
+            try {
+                showLoading(true);
+                await updateDoc(doc(db, 'subjects', subjectId), subjectData);
+                showNotification('Asignatura actualizada exitosamente', 'success');
+                hideEditSubjectModal();
+                await loadSubjects();
+                updateStatistics();
+            } catch (error) {
+                console.error('Error updating subject:', error);
+                showNotification('Error al actualizar la asignatura', 'error');
+            } finally {
+                showLoading(false);
+            }
+        });
+    }
+    
     // Filter event listeners
     const levelFilter = document.getElementById('levelFilter');
     const turnFilter = document.getElementById('turnFilter');
@@ -1092,6 +1742,46 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     if (studentFilter) {
         studentFilter.addEventListener('change', updateGradesTable);
+    }
+    
+    // Academic Period Selectors
+    const academicYearSelect = document.getElementById('academicYearSelect');
+    const semesterSelect = document.getElementById('semesterSelect');
+    
+    if (academicYearSelect) {
+        academicYearSelect.addEventListener('change', (e) => {
+            const year = e.target.value;
+            const semester = semesterSelect?.value;
+            
+            if (year && semester) {
+                setCurrentPeriod(year, semester);
+            }
+        });
+    }
+    
+    if (semesterSelect) {
+        semesterSelect.addEventListener('change', (e) => {
+            const semester = e.target.value;
+            const year = academicYearSelect?.value;
+            
+            if (year && semester) {
+                setCurrentPeriod(year, semester);
+            }
+        });
+    }
+    
+    // Add Period Form
+    const addPeriodForm = document.getElementById('addPeriodForm');
+    if (addPeriodForm) {
+        addPeriodForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            await addAcademicPeriod(formData);
+            
+            // Reset form
+            e.target.reset();
+        });
     }
 });
 
@@ -1117,6 +1807,20 @@ function addBulkStudent() {
         </button>
     `;
     container.appendChild(newRow);
+    
+    // Add event listeners for automatic email generation
+    const firstNameInput = newRow.querySelector('input[name="bulkFirstName[]"]');
+    const lastNameInput = newRow.querySelector('input[name="bulkLastName[]"]');
+    const emailInput = newRow.querySelector('input[name="bulkEmail[]"]');
+    
+    // Add event listeners for both inputs
+    firstNameInput.addEventListener('input', () => {
+        updateEmailField(firstNameInput, lastNameInput, emailInput);
+    });
+    
+    lastNameInput.addEventListener('input', () => {
+        updateEmailField(firstNameInput, lastNameInput, emailInput);
+    });
 }
 
 function removeBulkStudent(button) {
@@ -1170,6 +1874,13 @@ async function createBulkStudents() {
     }
     
     console.log('Valid students to create:', studentsToCreate.length);
+    
+    // Validate that a period is selected
+    if (!currentAcademicYear || !currentSemester) {
+        showNotification('Por favor selecciona un período académico antes de crear estudiantes', 'error');
+        isCreatingBulkStudents = false;
+        return;
+    }
     
     if (studentsToCreate.length === 0) {
         showNotification('Por favor ingresa al menos un estudiante', 'error');
@@ -1251,6 +1962,8 @@ async function createBulkStudents() {
                     uid: userCredential.user.uid,
                     role: 'student',
                     isActive: true,
+                    academicYear: currentAcademicYear,
+                    semester: currentSemester,
                     createdAt: serverTimestamp()
                 });
                 
@@ -2286,6 +2999,10 @@ window.hideBulkAddStudentModal = hideBulkAddStudentModal;
 window.resetBulkAddStudentModal = resetBulkAddStudentModal;
 window.showAddSubjectModal = showAddSubjectModal;
 window.hideAddSubjectModal = hideAddSubjectModal;
+window.showEditSubjectModal = showEditSubjectModal;
+window.hideEditSubjectModal = hideEditSubjectModal;
+window.editSubject = editSubject;
+window.deleteSubject = deleteSubject;
 window.showTab = showTab;
 window.addBulkStudent = addBulkStudent;
 window.removeBulkStudent = removeBulkStudent;
@@ -2304,6 +3021,37 @@ window.checkEmailExistsWithOrphanedHandling = checkEmailExistsWithOrphanedHandli
 window.handleFirebaseAuthError = handleFirebaseAuthError;
 window.cleanupData = cleanupData;
 window.logPerformance = logPerformance;
+window.normalizeText = normalizeText;
+window.generateEmail = generateEmail;
+window.updateEmailField = updateEmailField;
+window.showManagePeriodsModal = showManagePeriodsModal;
+window.hideManagePeriodsModal = hideManagePeriodsModal;
+window.setCurrentPeriod = setCurrentPeriod;
+window.deleteAcademicPeriod = deleteAcademicPeriod;
+
+// Debug function to check academic periods
+window.debugAcademicPeriods = async function() {
+    try {
+        console.log('🔍 Debug: Verificando períodos académicos...');
+        console.log('Current teacher ID:', currentTeacher?.uid);
+        
+        const periodsQuery = query(collection(db, 'academicPeriods'));
+        const snapshot = await getDocs(periodsQuery);
+        
+        console.log(`📊 Total períodos en la base de datos: ${snapshot.docs.length}`);
+        
+        snapshot.docs.forEach(doc => {
+            const data = doc.data();
+            console.log(`- ID: ${doc.id}, Teacher: ${data.teacherId}, Year: ${data.academicYear}, Semester: ${data.semester}, Name: ${data.name}`);
+        });
+        
+        console.log('📋 Períodos filtrados por teacher actual:', academicPeriods);
+        console.log('📋 Años únicos:', [...new Set(academicPeriods.map(p => p.academicYear))]);
+        
+    } catch (error) {
+        console.error('❌ Error en debug:', error);
+    }
+};
 window.signOut = () => {
     // Show confirmation dialog
     if (confirm('¿Estás seguro de que quieres cerrar sesión?')) {

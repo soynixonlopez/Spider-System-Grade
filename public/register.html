@@ -4,230 +4,75 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Registro - Spider System</title>
-    <link href="./css/style.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
 </head>
-<body class="bg-gray-50 min-h-screen">
-    <!-- Header -->
-    <header class="bg-white shadow-sm border-b border-gray-200">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between items-center py-4">
-                <div class="flex items-center">
-                    <div class="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center mr-3">
-                        <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
-                            <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                        </svg>
-                    </div>
-                    <h1 class="text-xl font-semibold text-gray-900">Spider System</h1>
-                </div>
-                <a href="index.html" class="text-primary-600 hover:text-primary-700 font-medium transition-colors">
-                    Volver al inicio
-                </a>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <div class="max-w-md mx-auto">
+            <div class="text-center mb-8">
+                <h1 class="text-3xl font-bold text-gray-900 mb-2">Spider System</h1>
+                <p class="text-gray-600">Registro de Usuario</p>
             </div>
-        </div>
-    </header>
-
-    <!-- Main Content -->
-    <main class="flex-1 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-        <div class="max-w-md w-full space-y-8">
-            <!-- Registration Card -->
-            <div class="bg-white rounded-xl shadow-lg p-8">
-                <div class="text-center mb-8">
-                    <h2 class="text-3xl font-bold text-gray-900 mb-2">Crear cuenta</h2>
-                    <p class="text-gray-600">Únete a Spider System para gestionar calificaciones</p>
-                </div>
-
-                <!-- Registration Form -->
+            
+            <div class="card">
                 <form id="registerForm" class="space-y-6">
-                    <!-- Role Selection -->
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-3">Tipo de cuenta</label>
-                        <div class="grid grid-cols-2 gap-3">
-                            <label class="relative cursor-pointer">
-                                <input type="radio" name="role" value="teacher" class="sr-only peer" checked>
-                                <div class="border-2 border-gray-200 rounded-lg p-4 text-center transition-all hover:border-primary-300 peer-checked:border-primary-500 peer-checked:bg-primary-50">
-                                    <svg class="w-8 h-8 mx-auto mb-2 text-gray-400 peer-checked:text-primary-600" fill="currentColor" viewBox="0 0 20 20">
-                                        <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3z"/>
-                                    </svg>
-                                    <span class="text-sm font-medium text-gray-700 peer-checked:text-primary-700">Profesor</span>
-                                </div>
-                            </label>
-                            <label class="relative cursor-pointer">
-                                <input type="radio" name="role" value="student" class="sr-only peer">
-                                <div class="border-2 border-gray-200 rounded-lg p-4 text-center transition-all hover:border-primary-300 peer-checked:border-primary-500 peer-checked:bg-primary-50">
-                                    <svg class="w-8 h-8 mx-auto mb-2 text-gray-400 peer-checked:text-primary-600" fill="currentColor" viewBox="0 0 20 20">
-                                        <path d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"/>
-                                    </svg>
-                                    <span class="text-sm font-medium text-gray-700 peer-checked:text-primary-700">Estudiante</span>
-                                </div>
-                            </label>
-                        </div>
+                    <div class="form-group">
+                        <label for="firstName" class="form-label">Nombre</label>
+                        <input type="text" id="firstName" name="firstName" class="form-input" required>
                     </div>
-
-                    <!-- Name Fields -->
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label for="firstName" class="block text-sm font-medium text-gray-700 mb-1">
-                                Nombre
-                            </label>
-                            <input type="text" id="firstName" name="firstName" required
-                                class="input w-full" placeholder="Tu nombre">
-                        </div>
-                        <div>
-                            <label for="lastName" class="block text-sm font-medium text-gray-700 mb-1">
-                                Apellido
-                            </label>
-                            <input type="text" id="lastName" name="lastName" required
-                                class="input w-full" placeholder="Tu apellido">
-                        </div>
+                    
+                    <div class="form-group">
+                        <label for="lastName" class="form-label">Apellido</label>
+                        <input type="text" id="lastName" name="lastName" class="form-input" required>
                     </div>
-
-                    <!-- Email -->
-                    <div>
-                        <label for="email" class="block text-sm font-medium text-gray-700 mb-1">
-                            Correo electrónico
-                        </label>
-                        <input type="email" id="email" name="email" required
-                            class="input w-full" placeholder="tu@email.com">
+                    
+                    <div class="form-group">
+                        <label for="email" class="form-label">Email</label>
+                        <input type="email" id="email" name="email" class="form-input" required>
                     </div>
-
-                    <!-- Password -->
-                    <div>
-                        <label for="password" class="block text-sm font-medium text-gray-700 mb-1">
-                            Contraseña
-                        </label>
-                        <input type="password" id="password" name="password" required
-                            class="input w-full" placeholder="Mínimo 6 caracteres">
+                    
+                    <div class="form-group">
+                        <label for="password" class="form-label">Contraseña</label>
+                        <input type="password" id="password" name="password" class="form-input" required>
                     </div>
-
-                    <!-- Confirm Password -->
-                    <div>
-                        <label for="confirmPassword" class="block text-sm font-medium text-gray-700 mb-1">
-                            Confirmar contraseña
-                        </label>
-                        <input type="password" id="confirmPassword" name="confirmPassword" required
-                            class="input w-full" placeholder="Repite tu contraseña">
+                    
+                    <div class="form-group">
+                        <label for="role" class="form-label">Rol</label>
+                        <select id="role" name="role" class="form-input" required>
+                            <option value="">Selecciona un rol</option>
+                            <option value="teacher">Profesor</option>
+                            <option value="student">Estudiante</option>
+                        </select>
                     </div>
-
-                    <!-- Student-specific fields (for students only) -->
-                    <div id="studentFields" class="hidden space-y-4">
-                        <!-- Turn Selection -->
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Turno</label>
-                            <div class="grid grid-cols-2 gap-3">
-                                <label class="relative cursor-pointer">
-                                    <input type="radio" name="turn" value="AM" class="sr-only peer">
-                                    <div class="border-2 border-gray-200 rounded-lg p-3 text-center transition-all hover:border-primary-300 peer-checked:border-primary-500 peer-checked:bg-primary-50">
-                                        <span class="text-sm font-medium text-gray-700 peer-checked:text-primary-700">AM</span>
-                                    </div>
-                                </label>
-                                <label class="relative cursor-pointer">
-                                    <input type="radio" name="turn" value="PM" class="sr-only peer">
-                                    <div class="border-2 border-gray-200 rounded-lg p-3 text-center transition-all hover:border-primary-300 peer-checked:border-primary-500 peer-checked:bg-primary-50">
-                                        <span class="text-sm font-medium text-gray-700 peer-checked:text-primary-700">PM</span>
-                                    </div>
-                                </label>
-                            </div>
-                        </div>
-
-                        <!-- Level Selection -->
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Nivel</label>
-                            <div class="grid grid-cols-3 gap-3">
-                                <label class="relative cursor-pointer">
-                                    <input type="radio" name="level" value="freshman" class="sr-only peer">
-                                    <div class="border-2 border-gray-200 rounded-lg p-3 text-center transition-all hover:border-primary-300 peer-checked:border-primary-500 peer-checked:bg-primary-50">
-                                        <span class="text-sm font-medium text-gray-700 peer-checked:text-primary-700">Freshman</span>
-                                    </div>
-                                </label>
-                                <label class="relative cursor-pointer">
-                                    <input type="radio" name="level" value="junior" class="sr-only peer">
-                                    <div class="border-2 border-gray-200 rounded-lg p-3 text-center transition-all hover:border-primary-300 peer-checked:border-primary-500 peer-checked:bg-primary-50">
-                                        <span class="text-sm font-medium text-gray-700 peer-checked:text-primary-700">Junior</span>
-                                    </div>
-                                </label>
-                                <label class="relative cursor-pointer">
-                                    <input type="radio" name="level" value="senior" class="sr-only peer">
-                                    <div class="border-2 border-gray-200 rounded-lg p-3 text-center transition-all hover:border-primary-300 peer-checked:border-primary-500 peer-checked:bg-primary-50">
-                                        <span class="text-sm font-medium text-gray-700 peer-checked:text-primary-700">Senior</span>
-                                    </div>
-                                </label>
-                            </div>
-                        </div>
+                    
+                    <div class="form-group" id="specialtyGroup" style="display: none;">
+                        <label for="specialty" class="form-label">Especialidad</label>
+                        <input type="text" id="specialty" name="specialty" class="form-input" placeholder="Ej: Matemáticas">
                     </div>
-
-                    <!-- Submit Button -->
-                    <button type="submit" class="btn btn-primary w-full">
-                        <span class="flex items-center justify-center">
-                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
-                            </svg>
-                            Crear cuenta
-                        </span>
+                    
+                    <div class="form-group" id="promotionGroup" style="display: none;">
+                        <label for="promotion" class="form-label">Promoción</label>
+                        <select id="promotion" name="promotion" class="form-input">
+                            <option value="">Selecciona una promoción</option>
+                        </select>
+                    </div>
+                    
+                    <button type="submit" class="btn-primary w-full">
+                        <span id="submitText">Registrarse</span>
+                        <span id="loadingText" class="hidden">Registrando...</span>
                     </button>
                 </form>
-
-                <!-- Login Link -->
+                
                 <div class="mt-6 text-center">
-                    <p class="text-sm text-gray-600">
-                        ¿Ya tienes una cuenta?
-                        <a href="login.html" class="font-medium text-primary-600 hover:text-primary-500 transition-colors">
-                            Iniciar sesión
-                        </a>
+                    <p class="text-gray-600">
+                        ¿Ya tienes cuenta? 
+                        <a href="index.html" class="text-blue-600 hover:text-blue-800">Iniciar sesión</a>
                     </p>
                 </div>
             </div>
         </div>
-    </main>
-
-    <!-- Footer -->
-    <footer class="bg-white border-t border-gray-200 mt-auto">
-        <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-            <div class="flex flex-col md:flex-row justify-between items-center">
-                <div class="flex items-center mb-4 md:mb-0">
-                    <div class="w-6 h-6 bg-primary-600 rounded mr-2"></div>
-                    <span class="text-sm text-gray-600">© 2024 Spider System. Todos los derechos reservados.</span>
-                </div>
-                <div class="flex space-x-6">
-                    <a href="#" class="text-sm text-gray-500 hover:text-gray-700 transition-colors">Privacidad</a>
-                    <a href="#" class="text-sm text-gray-500 hover:text-gray-700 transition-colors">Términos</a>
-                    <a href="#" class="text-sm text-gray-500 hover:text-gray-700 transition-colors">Soporte</a>
-                </div>
-            </div>
-        </div>
-    </footer>
-
-    <!-- Loading Spinner -->
-    <div id="loadingSpinner" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
-        <div class="bg-white rounded-lg p-6 flex items-center space-x-3">
-            <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-primary-600"></div>
-            <span class="text-gray-700">Creando cuenta...</span>
-        </div>
     </div>
 
-    <!-- Notification -->
-    <div id="notification" class="fixed top-4 right-4 z-50 hidden">
-        <div class="bg-white rounded-lg shadow-lg border-l-4 p-4 max-w-sm">
-            <div class="flex items-center">
-                <div class="flex-shrink-0">
-                    <svg id="notificationIcon" class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20"></svg>
-                </div>
-                <div class="ml-3">
-                    <p id="notificationMessage" class="text-sm font-medium"></p>
-                </div>
-                <div class="ml-auto pl-3">
-                    <button onclick="hideNotification()" class="text-gray-400 hover:text-gray-600">
-                        <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
-                        </svg>
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Scripts -->
-    <script type="module" src="./js/firebase-config.js"></script>
-    <script type="module" src="./js/register.js"></script>
+    <script type="module" src="js/register.js"></script>
 </body>
 </html>

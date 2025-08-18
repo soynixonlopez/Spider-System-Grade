@@ -4,11 +4,18 @@ Un sistema moderno y eficiente para la gestión de calificaciones escolares, con
 
 ## 🚀 Características
 
+### Para Administradores
+- ✅ Dashboard completo para gestión institucional
+- ✅ Gestión de promociones (ej: Prom25 AM/PM)
+- ✅ Creación de asignaturas y asignación de profesores
+- ✅ Matrícula de estudiantes por promociones
+- ✅ Asignación automática de estudiantes a asignaturas
+- ✅ Estadísticas generales del sistema
+
 ### Para Profesores
-- ✅ Dashboard completo con estadísticas en tiempo real
+- ✅ Dashboard filtrado por asignaturas asignadas
 - ✅ Gestión de calificaciones por estudiante y asignatura
-- ✅ Creación y administración de asignaturas
-- ✅ Lista de estudiantes con información detallada
+- ✅ Vista de estudiantes asignados a sus asignaturas
 - ✅ Reportes y análisis de rendimiento
 - ✅ Interfaz intuitiva y responsiva
 
@@ -26,6 +33,7 @@ Un sistema moderno y eficiente para la gestión de calificaciones escolares, con
 - 📱 Diseño completamente responsivo
 - ⚡ Rendimiento optimizado
 - 🔄 Sincronización automática
+- 🏗️ Sistema de promociones y asignaciones
 
 ## 🛠️ Tecnologías Utilizadas
 
@@ -253,12 +261,32 @@ firebase deploy
    - Comparativas por asignatura
    - Historial académico
 
+### Para Administradores
+
+1. **Iniciar sesión** con credenciales de administrador
+2. **Dashboard institucional** muestra:
+   - Estadísticas generales del sistema
+   - Total de estudiantes, promociones, asignaturas y profesores
+3. **Gestión de promociones**:
+   - Crear promociones (ej: Prom25 AM/PM)
+   - Especificar año de graduación
+   - Eliminar promociones con eliminación en cascada
+4. **Gestión de asignaturas**:
+   - Crear asignaturas y asignar profesores
+   - Seleccionar promociones para cada asignatura
+   - Asignación automática de estudiantes
+5. **Gestión de estudiantes**:
+   - Agregar estudiantes individuales o en masa
+   - Asignar estudiantes a promociones específicas
+   - Visualizar estudiantes por promoción
+
 ## 🔒 Seguridad
 
-- Autenticación basada en roles (profesor/estudiante)
+- Autenticación basada en roles (administrador/profesor/estudiante)
 - Reglas de Firestore para control de acceso
 - Validación de datos en frontend y backend
 - Protección contra inyección de código
+- Control granular de permisos por rol
 
 ## 🎨 Personalización
 
