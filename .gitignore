@@ -40,6 +40,10 @@ jspm_packages/
 
 # dotenv environment variables file
 .env
+config.env
+
+# Configuration files with sensitive data
+public/config.json
 
 # IDE files
 .vscode/

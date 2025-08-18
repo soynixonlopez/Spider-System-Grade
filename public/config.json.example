@@ -1,0 +1,15 @@
+{
+    "HUGGING_FACE_TOKEN": "your_hugging_face_token_here",
+    "CHATBOT_MODEL": "microsoft/DialoGPT-large",
+    "CHATBOT_MAX_LENGTH": 150,
+    "CHATBOT_TEMPERATURE": 0.7,
+    "NODE_ENV": "development",
+    "FIREBASE_CONFIG": {
+        "apiKey": "your_firebase_api_key_here",
+        "authDomain": "your_project.firebaseapp.com",
+        "projectId": "your_project_id",
+        "storageBucket": "your_project.appspot.com",
+        "messagingSenderId": "your_sender_id",
+        "appId": "your_app_id"
+    }
+}
