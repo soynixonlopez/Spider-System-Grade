@@ -1,159 +1,121 @@
-# 🚀 Instrucciones de Despliegue Automático de Firebase
+# 🚀 Instrucciones de Despliegue - Spider System
 
-## Problema
-Los errores de Firebase que estás experimentando son:
-1. **Error de Índices**: `The query requires an index`
-2. **Error de Permisos**: `Missing or insufficient permissions`
+## 📋 Requisitos Previos
 
-## Solución Automática
+1. **Node.js** instalado (versión 14 o superior)
+2. **Firebase CLI** instalado globalmente
+3. **Cuenta de Firebase** configurada
 
-### Opción 1: Script Automático (Recomendado)
+## 🔧 Configuración Inicial
 
-#### Para Windows:
-1. **Haz doble clic** en el archivo `deploy-firebase.bat`
-2. El script se ejecutará automáticamente
-3. Sigue las instrucciones en pantalla
-
-#### Para macOS/Linux:
-```bash
-node deploy-firebase.js
-```
-
-### Opción 2: Comandos Manuales
-
-Si prefieres ejecutar los comandos manualmente:
-
-```bash
-# 1. Verificar autenticación
-firebase projects:list
-
-# 2. Si no estás autenticado, hacer login
-firebase login
-
-# 3. Desplegar reglas de seguridad
-firebase deploy --only firestore:rules --project spidersystem-ce9a6
-
-# 4. Desplegar índices
-firebase deploy --only firestore:indexes --project spidersystem-ce9a6
-```
-
-## Requisitos Previos
-
-### 1. Firebase CLI Instalado
+### 1. Instalar Firebase CLI
 ```bash
 npm install -g firebase-tools
 ```
 
-### 2. Permisos de Administrador
-- Debes ser **propietario** o **administrador** del proyecto Firebase
-- Si no tienes permisos, contacta al propietario del proyecto
-
-### 3. Cuenta de Google
-- Debes estar logueado con la cuenta que tiene acceso al proyecto
-
-## Verificación de Permisos
-
-### Verificar si tienes permisos:
-1. Ve a [Firebase Console](https://console.firebase.google.com/project/spidersystem-ce9a6)
-2. En el menú lateral, haz clic en **"Project settings"**
-3. Ve a la pestaña **"Users and permissions"**
-4. Verifica que tu cuenta tenga rol de **"Owner"** o **"Editor"**
-
-### Si no tienes permisos:
-1. Contacta al propietario del proyecto
-2. Pídele que te dé permisos de **"Editor"** o **"Owner"**
-3. O pídele que ejecute estos comandos por ti
-
-## Solución Manual (Si los scripts fallan)
-
-### 1. Actualizar Reglas de Seguridad
-1. Ve a [Firebase Console](https://console.firebase.google.com/project/spidersystem-ce9a6)
-2. **Firestore Database** → **Rules**
-3. Reemplaza el contenido con:
-
-```javascript
-rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
-    // Users can read/write their own data
-    match /users/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
-      
-      // Teachers can read, write, and delete all users (to manage students)
-      allow read, write, delete: if request.auth != null && 
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'teacher';
-    }
-    
-    // Teachers can manage subjects
-    match /subjects/{subjectId} {
-      allow read, write, delete: if request.auth != null && 
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'teacher';
-    }
-    
-    // Teachers can manage grades, students can read their own grades
-    match /grades/{gradeId} {
-      allow read, write, delete: if request.auth != null && 
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'teacher';
-      allow read: if request.auth != null && 
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'student' &&
-        resource.data.studentId == request.auth.uid;
-    }
-    
-    // Teachers can manage academic periods
-    match /academicPeriods/{periodId} {
-      allow read, write, delete: if request.auth != null && 
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'teacher';
-    }
-  }
-}
+### 2. Autenticarse en Firebase
+```bash
+firebase login
 ```
 
-4. Haz clic en **"Publish"**
+### 3. Inicializar el proyecto (si no está hecho)
+```bash
+firebase init hosting
+```
 
-### 2. Crear Índices Manualmente
-1. **Firestore Database** → **Indexes**
-2. Haz clic en **"Add Index"**
+## 🌐 Despliegue en Firebase
 
-**Índice 1:**
-- Collection ID: `subjects`
-- Fields:
-  - `teacherId` → Ascending
-  - `academicYear` → Ascending
-  - `semester` → Ascending
-  - `name` → Ascending
+### Opción 1: Script Automático (Recomendado)
+```powershell
+# En PowerShell
+.\deploy-firebase.ps1
+```
 
-**Índice 2:**
-- Collection ID: `grades`
-- Fields:
-  - `teacherId` → Ascending
-  - `academicYear` → Ascending
-  - `semester` → Ascending
+### Opción 2: Comando Manual
+```bash
+firebase deploy --only hosting
+```
 
-## Verificación del Despliegue
+## 🏠 Desarrollo Local
 
-### Después del despliegue:
-1. **Espera 1-2 minutos** para que los índices se construyan
-2. **Actualiza tu dashboard**
-3. **Prueba las funciones**:
-   - Agregar un período académico
-   - Cargar asignaturas
-   - Cargar calificaciones
+### Opción 1: Live Server (VS Code)
+1. Instala la extensión "Live Server" en VS Code
+2. Click derecho en `public/index.html`
+3. Selecciona "Open with Live Server"
+4. La aplicación se abrirá en `http://127.0.0.1:5500`
 
-### Si sigues teniendo errores:
-1. Verifica que los índices estén en estado **"Enabled"** (no "Building")
-2. Revisa la consola del navegador para errores específicos
-3. Contacta al administrador del proyecto
+### Opción 2: Servidor Node.js
+```bash
+node server.js
+```
+Luego abre `http://localhost:8000`
 
-## Archivos Creados
+### Opción 3: Servidor Python
+```bash
+python -m http.server 8000
+```
+Luego abre `http://localhost:8000`
 
-- `deploy-firebase.js` - Script de Node.js
-- `deploy-firebase.ps1` - Script de PowerShell
-- `deploy-firebase.bat` - Archivo batch para Windows
-- `DEPLOY_INSTRUCTIONS.md` - Este archivo de instrucciones
+## 🔧 Solución de Problemas
 
-## Soporte
+### Error de MIME Type en Live Server
+Si ves este error:
+```
+Refused to apply style from '...' because its MIME type ('text/html') is not a supported stylesheet MIME type
+```
+
+**Soluciones:**
+1. **Usar el servidor Node.js**: `node server.js`
+2. **Configurar Live Server**: El archivo `.liveserverrc` ya está configurado
+3. **Usar Firebase Hosting local**: `firebase serve`
+
+### Firebase Hosting Local
+```bash
+firebase serve
+```
+Esto simula exactamente el entorno de producción.
+
+## 📁 Estructura del Proyecto
+
+```
+Spider-System-Grade/
+├── public/                 # Archivos para el hosting
+│   ├── index.html         # Página principal
+│   ├── dashboard-admin.html
+│   ├── dashboard-teacher.html
+│   ├── dashboard-student.html
+│   ├── css/               # Estilos
+│   ├── js/                # JavaScript
+│   └── components/        # Componentes
+├── firebase.json          # Configuración de Firebase
+├── server.js             # Servidor Node.js local
+└── deploy-firebase.ps1   # Script de despliegue
+```
+
+## 🌍 URLs de Producción
+
+- **Aplicación principal**: https://spider-system-grade.web.app
+- **Dashboard Admin**: https://spider-system-grade.web.app/dashboard-admin.html
+- **Dashboard Profesor**: https://spider-system-grade.web.app/dashboard-teacher.html
+- **Dashboard Estudiante**: https://spider-system-grade.web.app/dashboard-student.html
+
+## 🔄 Flujo de Trabajo Recomendado
+
+1. **Desarrollo**: Usa Live Server o `node server.js`
+2. **Pruebas**: Usa `firebase serve` para simular producción
+3. **Despliegue**: Usa `.\deploy-firebase.ps1`
+
+## ⚠️ Notas Importantes
+
+- **Firebase Hosting** maneja automáticamente los MIME types correctos
+- **Live Server** puede tener problemas con MIME types en algunos casos
+- **El servidor Node.js** es la opción más confiable para desarrollo local
+- **Siempre prueba en `firebase serve`** antes de desplegar
+
+## 🆘 Soporte
 
 Si tienes problemas:
-1. Revisa los mensajes de error en la consola
-2. Verifica que tienes permisos de administrador
-3. Contacta al propietario del proyecto Firebase
+1. Verifica que Firebase CLI esté instalado: `firebase --version`
+2. Verifica que estés autenticado: `firebase projects:list`
+3. Usa `firebase serve` para probar localmente
+4. Revisa los logs de Firebase Console

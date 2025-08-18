@@ -1,98 +1,45 @@
-# Script de despliegue automático de Firebase para Windows
-# Ejecutar como: .\deploy-firebase.ps1
+# Script de despliegue para Firebase
+Write-Host "🚀 Iniciando despliegue en Firebase..." -ForegroundColor Green
 
-Write-Host "🚀 Iniciando despliegue automático de Firebase..." -ForegroundColor Cyan
-
-# Función para escribir mensajes con colores
-function Write-ColorOutput {
-    param(
-        [string]$Message,
-        [string]$Color = "White"
-    )
-    Write-Host $Message -ForegroundColor $Color
+# Verificar si Firebase CLI está instalado
+try {
+    $firebaseVersion = firebase --version
+    Write-Host "✅ Firebase CLI detectado: $firebaseVersion" -ForegroundColor Green
+} catch {
+    Write-Host "❌ Firebase CLI no está instalado. Instálalo con: npm install -g firebase-tools" -ForegroundColor Red
+    exit 1
 }
 
-# Función para ejecutar comandos
-function Execute-Command {
-    param(
-        [string]$Command,
-        [string]$Description
-    )
-    
-    Write-ColorOutput "`n$Description" "Blue"
-    Write-ColorOutput "Ejecutando: $Command" "Gray"
-    
-    try {
-        $result = Invoke-Expression $Command 2>&1
-        if ($LASTEXITCODE -eq 0) {
-            Write-ColorOutput "✅ Comando ejecutado exitosamente" "Green"
-            Write-ColorOutput $result "Green"
-            return $true
-        } else {
-            Write-ColorOutput "❌ Error en el comando" "Red"
-            Write-ColorOutput $result "Red"
-            return $false
-        }
-    }
-    catch {
-        Write-ColorOutput "❌ Excepción: $($_.Exception.Message)" "Red"
-        return $false
-    }
-}
-
-# Paso 1: Verificar autenticación
-Write-ColorOutput "`n1. Verificando autenticación de Firebase..." "Blue"
-$authResult = Execute-Command "firebase projects:list" "Verificando proyectos disponibles"
-
-if (-not $authResult) {
-    Write-ColorOutput "`n❌ Usuario no autenticado. Iniciando proceso de login..." "Red"
-    $loginResult = Execute-Command "firebase login" "Iniciando sesión en Firebase"
-    
-    if (-not $loginResult) {
-        Write-ColorOutput "`n❌ No se pudo autenticar. Saliendo..." "Red"
+# Verificar si estás logueado en Firebase
+try {
+    $user = firebase projects:list
+    if ($user -match "No projects found") {
+        Write-Host "❌ No estás logueado en Firebase. Ejecuta: firebase login" -ForegroundColor Red
         exit 1
     }
+    Write-Host "✅ Autenticado en Firebase" -ForegroundColor Green
+} catch {
+    Write-Host "❌ Error de autenticación. Ejecuta: firebase login" -ForegroundColor Red
+    exit 1
 }
 
-# Paso 2: Desplegar reglas de Firestore
-Write-ColorOutput "`n2. Desplegando reglas de Firestore..." "Blue"
-$rulesResult = Execute-Command "firebase deploy --only firestore:rules --project spidersystem-ce9a6" "Desplegando reglas de seguridad"
+# Construir el proyecto (si es necesario)
+Write-Host "📦 Preparando archivos para despliegue..." -ForegroundColor Yellow
 
-if (-not $rulesResult) {
-    Write-ColorOutput "`n⚠️  Error al desplegar reglas. Intentando con flag --force..." "Yellow"
-    $rulesResult = Execute-Command "firebase deploy --only firestore:rules --project spidersystem-ce9a6 --force" "Desplegando reglas con force"
+# Verificar que la carpeta public existe
+if (-not (Test-Path "public")) {
+    Write-Host "❌ La carpeta 'public' no existe" -ForegroundColor Red
+    exit 1
 }
 
-# Paso 3: Desplegar índices de Firestore
-Write-ColorOutput "`n3. Desplegando índices de Firestore..." "Blue"
-$indexesResult = Execute-Command "firebase deploy --only firestore:indexes --project spidersystem-ce9a6" "Desplegando índices"
+# Desplegar en Firebase
+Write-Host "🌐 Desplegando en Firebase..." -ForegroundColor Yellow
+firebase deploy --only hosting
 
-if (-not $indexesResult) {
-    Write-ColorOutput "`n⚠️  Error al desplegar índices. Intentando con flag --force..." "Yellow"
-    $indexesResult = Execute-Command "firebase deploy --only firestore:indexes --project spidersystem-ce9a6 --force" "Desplegando índices con force"
-}
-
-# Paso 4: Verificar despliegue
-Write-ColorOutput "`n4. Verificando despliegue..." "Blue"
-Execute-Command "firebase projects:list" "Listando proyectos para verificación"
-
-# Resumen final
-if ($rulesResult -and $indexesResult) {
-    Write-ColorOutput "`n🎉 ¡Despliegue completado exitosamente!" "Green"
-    Write-ColorOutput "Los cambios deberían estar activos en 1-2 minutos." "Green"
-    Write-ColorOutput "`n📋 Próximos pasos:" "Cyan"
-    Write-ColorOutput "1. Espera 1-2 minutos para que los índices se construyan" "White"
-    Write-ColorOutput "2. Actualiza tu dashboard" "White"
-    Write-ColorOutput "3. Prueba agregar un período académico" "White"
-    Write-ColorOutput "4. Verifica que las asignaturas y calificaciones se cargan correctamente" "White"
+if ($LASTEXITCODE -eq 0) {
+    Write-Host "✅ Despliegue completado exitosamente!" -ForegroundColor Green
+    Write-Host "🌍 Tu aplicación está disponible en: https://spider-system-grade.web.app" -ForegroundColor Cyan
 } else {
-    Write-ColorOutput "`n❌ El despliegue no se completó completamente" "Red"
-    Write-ColorOutput "`n💡 Soluciones alternativas:" "Yellow"
-    Write-ColorOutput "1. Verifica que tienes permisos de administrador en el proyecto" "Yellow"
-    Write-ColorOutput "2. Contacta al propietario del proyecto para obtener permisos" "Yellow"
-    Write-ColorOutput "3. Usa Firebase Console para hacer los cambios manualmente" "Yellow"
-    Write-ColorOutput "`n🔗 Firebase Console: https://console.firebase.google.com/project/spidersystem-ce9a6" "Cyan"
+    Write-Host "❌ Error en el despliegue" -ForegroundColor Red
+    exit 1
 }
-
-Write-ColorOutput "`nPresiona cualquier tecla para continuar..." "Gray"
-$null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")

@@ -6,13 +6,15 @@
     <title>Dashboard Administrador - Spider System</title>
     <link href="./css/style.css" rel="stylesheet">
     <link href="./css/admin-dashboard.css" rel="stylesheet">
-    <link href="./css/footer-component.css" rel="stylesheet">
+    <link href="./components/footer-component.css" rel="stylesheet">
+    <link href="./css/chatbot.css" rel="stylesheet">
     <link rel="icon" type="image/svg+xml" href="./assets/spider-icon.svg">
 
 </head>
 <body class="bg-gray-50 min-h-screen">
-    <!-- Navigation -->
-    <nav class="bg-white shadow-sm border-b border-gray-200">
+    <div class="main-content">
+        <!-- Navigation -->
+        <nav class="bg-white shadow-sm border-b border-gray-200">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center h-16">
                 <div class="flex items-center space-x-3">
@@ -847,10 +849,12 @@
     <!-- Notification Container -->
     <div id="notificationContainer"></div>
 
+    </div>
     <!-- Scripts -->
     <script type="module" src="js/admin-dashboard.js"></script>
     <script type="module" src="js/debug-admin.js"></script>
-    <script src="js/footer-component.js"></script>
+    <script src="components/footer-component.js"></script>
+    <script type="module" src="js/chatbot.js"></script>
     <!-- Uncomment the line below to enable student creation tests (development only) -->
     <!-- <script type="module" src="js/test-student-creation.js"></script> -->
 </body>

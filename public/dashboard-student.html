@@ -5,11 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard Estudiante - Spider Grades</title>
     <link href="./css/style.css" rel="stylesheet">
+    <link href="./components/footer-component.css" rel="stylesheet">
+    <link href="./css/chatbot.css" rel="stylesheet">
     <link rel="icon" type="image/svg+xml" href="./assets/spider-icon.svg">
 </head>
-<body class="bg-gray-50">
-    <!-- Navigation -->
-    <nav class="bg-white shadow-sm border-b border-gray-200">
+<body class="bg-gray-50 min-h-screen">
+    <div class="main-content">
+        <!-- Navigation -->
+        <nav class="bg-white shadow-sm border-b border-gray-200">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center h-16">
                 <div class="flex items-center space-x-3">
@@ -225,9 +228,12 @@
         </div>
     </div>
 
+    </div>
     <!-- Scripts -->
     <script type="module" src="./js/firebase-config.js"></script>
     <script type="module" src="./js/database.js"></script>
     <script type="module" src="./js/student-dashboard.js"></script>
+    <script src="./components/footer-component.js"></script>
+    <script type="module" src="./js/chatbot.js"></script>
 </body>
 </html>

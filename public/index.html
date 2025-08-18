@@ -5,7 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Spider System - Acceso al Sistema</title>
     <link href="./css/style.css" rel="stylesheet">
-    <link href="./css/footer-component.css" rel="stylesheet">
+    <link href="./components/footer-component.css" rel="stylesheet">
+    <link href="./css/chatbot.css" rel="stylesheet">
     <link rel="icon" type="image/svg+xml" href="./assets/spider-icon.svg">
     <style>
         * {
@@ -135,11 +136,12 @@
     </style>
 </head>
 <body class="min-h-screen flex flex-col">
-    <!-- Particles Background -->
-    <div id="particles-js"></div>
-    
-    <!-- Main Header -->
-    <header class="main-header">
+    <div class="main-content">
+        <!-- Particles Background -->
+        <div id="particles-js"></div>
+        
+        <!-- Main Header -->
+        <header class="main-header">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center">
                 <div class="flex items-center space-x-3">
@@ -289,6 +291,7 @@
             </div>
         </div>
     </div>
+    </div>
 
     <!-- Footer Component will be inserted here by JavaScript -->
 
@@ -303,7 +306,10 @@
 
     <!-- Scripts -->
     <script type="module" src="js/auth.js"></script>
-    <script src="js/footer-component.js"></script>
+    <script src="components/footer-component.js"></script>
+    <script type="module" src="js/chatbot.js"></script>
+    <script type="module" src="js/test-firebase-permissions.js"></script>
+    <script type="module" src="js/firebase-domain-check.js"></script>
     <script>
         // Role selection functionality
         let selectedRole = 'teacher'; // Default role

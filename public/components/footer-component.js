@@ -10,12 +10,15 @@ class FooterComponent {
     }
 
     init() {
+        console.log('FooterComponent: Initializing...');
         this.createFooter();
         this.createPolicyModals();
         this.bindEvents();
+        console.log('FooterComponent: Initialized successfully');
     }
 
     createFooter() {
+        console.log('FooterComponent: Creating footer...');
         const footerHTML = `
             <footer class="footer-component">
                 <div class="footer-content">
@@ -42,6 +45,7 @@ class FooterComponent {
 
         // Insertar el footer al final del body
         document.body.insertAdjacentHTML('beforeend', footerHTML);
+        console.log('FooterComponent: Footer created and inserted');
     }
 
     createPolicyModals() {

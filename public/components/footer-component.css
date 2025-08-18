@@ -1,10 +1,24 @@
 /* Footer Component Styles */
 
+/* Asegurar que el body tenga altura mínima para mostrar el footer */
+body {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Contenedor principal para empujar el footer hacia abajo */
+.main-content {
+    flex: 1;
+}
+
 .footer-component {
     background-color: #f9fafb;
     border-top: 1px solid #e5e7eb;
     padding: 1rem 0;
     margin-top: auto;
+    position: relative;
+    z-index: 10;
 }
 
 .footer-content {
